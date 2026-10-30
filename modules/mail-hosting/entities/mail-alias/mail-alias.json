@@ -1,0 +1,20 @@
+{
+  "name": "Mail Alias",
+  "module": "mail-hosting",
+  "default_list_view": "List",
+  "is_single": 0,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 0,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 1,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "name,destinations",
+  "title_fields": "address",
+  "naming_series": "",
+  "resources": [],
+  "__ENTITY__": "Entity",
+  "doc_structure": "[{\"node\": \"mal_1\", \"element\": \"row\", \"data\": {\"name\": \"name_and_status_container\"}, \"elements\": [{\"node\": \"mal_2\", \"element\": \"input\", \"data\": {\"name\": \"name\", \"label\": \"Address\", \"type\": \"VARCHAR\", \"required\": 1, \"unique\": 1, \"set_only_time\": 1, \"searchable\": 1, \"hidden\": 1}}]}, {\"node\": \"mal_6\", \"element\": \"row\", \"data\": {\"layout\": \"[35,35,30]\"}, \"elements\": [{\"node\": \"mal_7\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mal_3\", \"element\": \"input\", \"data\": {\"name\": \"local_part\", \"label\": \"Alias\", \"required\": 1, \"set_only_time\": 1, \"description\": \"e.g. ventas\"}}]}, {\"node\": \"mal_8\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mal_4\", \"element\": \"select\", \"data\": {\"name\": \"domain\", \"label\": \"Domain\", \"options\": \"Mail Domain\", \"required\": 1, \"set_only_time\": 1, \"in_list_view\": 1, \"searchable\": 1}}]}, {\"node\": \"mal_9\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mal_5\", \"element\": \"input\", \"data\": {\"name\": \"address\", \"label\": \"Address\", \"readonly\": 1, \"in_list_view\": 1, \"searchable\": 1}}]}]}, {\"node\": \"mal_10\", \"element\": \"textarea\", \"data\": {\"name\": \"destinations\", \"label\": \"Delivers to\", \"in_list_view\": 1, \"description\": \"One address per line, of the same domain.\"}}, {\"node\": \"mal_11\", \"element\": \"switch\", \"data\": {\"name\": \"is_internal\", \"label\": \"Internal only\", \"default_value\": 0, \"set_only_time\": 1, \"description\": \"Receives only from your own domains.\"}}, {\"node\": \"mal_12\", \"element\": \"textarea\", \"data\": {\"name\": \"notes\", \"label\": \"Notes\"}}]"
+}

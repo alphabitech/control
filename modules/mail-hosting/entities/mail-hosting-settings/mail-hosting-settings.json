@@ -1,0 +1,20 @@
+{
+  "name": "Mail Hosting Settings",
+  "module": "mail-hosting",
+  "default_list_view": "List",
+  "is_single": 1,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 0,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 1,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "",
+  "title_fields": "",
+  "naming_series": "",
+  "resources": [],
+  "__ENTITY__": "Entity",
+  "doc_structure": "[{\"node\": \"mhs_6\", \"element\": \"card\", \"data\": {\"label\": \"Migadu\"}, \"elements\": [{\"node\": \"mhs_3\", \"element\": \"row\", \"data\": {\"layout\": \"[50,50]\"}, \"elements\": [{\"node\": \"mhs_4\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mhs_1\", \"element\": \"input\", \"data\": {\"name\": \"migadu_user\", \"label\": \"Migadu user\", \"description\": \"The admin email you log in to Migadu with.\"}}]}, {\"node\": \"mhs_5\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mhs_2\", \"element\": \"password\", \"data\": {\"name\": \"migadu_api_key\", \"label\": \"Migadu API key\", \"description\": \"Migadu → My Account → API Keys.\"}}]}]}]}, {\"node\": \"mhs_8\", \"element\": \"card\", \"data\": {\"label\": \"Cloudflare\"}, \"elements\": [{\"node\": \"mhs_7\", \"element\": \"password\", \"data\": {\"name\": \"cloudflare_api_token\", \"label\": \"Cloudflare API token\", \"description\": \"Custom token with Zone → DNS → Edit on the client zones (All zones or specific ones).\"}}]}, {\"node\": \"mhs_14\", \"element\": \"card\", \"data\": {\"label\": \"DMARC for new domains\"}, \"elements\": [{\"node\": \"mhs_11\", \"element\": \"row\", \"data\": {\"layout\": \"[50,50]\"}, \"elements\": [{\"node\": \"mhs_12\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mhs_9\", \"element\": \"select\", \"data\": {\"name\": \"dmarc_policy\", \"label\": \"Policy\", \"options\": \"quarantine:Quarantine (recommended)\\nreject:Reject\\nnone:None (monitor only)\", \"default_value\": \"quarantine\", \"description\": \"Used only when a domain has no valid DMARC record. An existing valid policy is kept.\"}}]}, {\"node\": \"mhs_13\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mhs_10\", \"element\": \"input\", \"data\": {\"name\": \"dmarc_report_email\", \"label\": \"Report address (rua)\", \"format\": \"email\", \"description\": \"Optional. Receives the daily DMARC reports.\"}}]}]}]}]"
+}

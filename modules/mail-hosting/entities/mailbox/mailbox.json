@@ -1,0 +1,20 @@
+{
+  "name": "Mailbox",
+  "module": "mail-hosting",
+  "default_list_view": "List",
+  "is_single": 0,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 0,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 1,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "name,display_name,domain",
+  "title_fields": "address",
+  "naming_series": "",
+  "resources": [],
+  "__ENTITY__": "Entity",
+  "doc_structure": "[{\"node\": \"mbx_1\", \"element\": \"row\", \"data\": {\"name\": \"name_and_status_container\"}, \"elements\": [{\"node\": \"mbx_2\", \"element\": \"input\", \"data\": {\"name\": \"name\", \"label\": \"Address\", \"type\": \"VARCHAR\", \"required\": 1, \"unique\": 1, \"set_only_time\": 1, \"searchable\": 1, \"hidden\": 1}}]}, {\"node\": \"mbx_6\", \"element\": \"row\", \"data\": {\"layout\": \"[35,35,30]\"}, \"elements\": [{\"node\": \"mbx_7\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_3\", \"element\": \"input\", \"data\": {\"name\": \"local_part\", \"label\": \"User\", \"required\": 1, \"set_only_time\": 1, \"description\": \"The part before the @ (e.g. ana).\"}}]}, {\"node\": \"mbx_8\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_4\", \"element\": \"select\", \"data\": {\"name\": \"domain\", \"label\": \"Domain\", \"options\": \"Mail Domain\", \"required\": 1, \"set_only_time\": 1, \"in_list_view\": 1, \"searchable\": 1}}]}, {\"node\": \"mbx_9\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_5\", \"element\": \"input\", \"data\": {\"name\": \"address\", \"label\": \"Address\", \"readonly\": 1, \"in_list_view\": 1, \"searchable\": 1, \"description\": \"Login. IMAP imap.migadu.com:993 · SMTP smtp.migadu.com:465 · webmail.migadu.com\"}}]}]}, {\"node\": \"mbx_12\", \"element\": \"row\", \"data\": {\"layout\": \"[50,50]\"}, \"elements\": [{\"node\": \"mbx_13\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_10\", \"element\": \"input\", \"data\": {\"name\": \"display_name\", \"label\": \"Display name\", \"in_list_view\": 1, \"searchable\": 1}}]}, {\"node\": \"mbx_14\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_11\", \"element\": \"input\", \"data\": {\"name\": \"recovery_email\", \"label\": \"Invitation / recovery email\", \"format\": \"email\", \"description\": \"Migadu sends here the link to set the password. Must be another address.\"}}]}]}, {\"node\": \"mbx_19\", \"element\": \"row\", \"data\": {\"layout\": \"[25,25,25,25]\"}, \"elements\": [{\"node\": \"mbx_20\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_15\", \"element\": \"switch\", \"data\": {\"name\": \"may_send\", \"label\": \"Can send\", \"default_value\": 1}}]}, {\"node\": \"mbx_21\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_16\", \"element\": \"switch\", \"data\": {\"name\": \"may_receive\", \"label\": \"Can receive\", \"default_value\": 1}}]}, {\"node\": \"mbx_22\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_17\", \"element\": \"switch\", \"data\": {\"name\": \"may_access_imap\", \"label\": \"IMAP access\", \"default_value\": 1}}]}, {\"node\": \"mbx_23\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mbx_18\", \"element\": \"switch\", \"data\": {\"name\": \"is_internal\", \"label\": \"Internal only\", \"default_value\": 0, \"set_only_time\": 1, \"description\": \"Receives only from your own domains.\"}}]}]}, {\"node\": \"mbx_24\", \"element\": \"input\", \"data\": {\"name\": \"invited_at\", \"label\": \"Invitation sent\", \"readonly\": 1}}, {\"node\": \"mbx_25\", \"element\": \"textarea\", \"data\": {\"name\": \"notes\", \"label\": \"Notes\"}}]"
+}

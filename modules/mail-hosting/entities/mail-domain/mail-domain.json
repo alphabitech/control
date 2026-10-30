@@ -1,0 +1,20 @@
+{
+  "name": "Mail Domain",
+  "module": "mail-hosting",
+  "default_list_view": "List",
+  "is_single": 0,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 0,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 1,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "name,customer",
+  "title_fields": "name",
+  "naming_series": "",
+  "resources": [],
+  "__ENTITY__": "Entity",
+  "doc_structure": "[{\"node\": \"mdm_4\", \"element\": \"row\", \"data\": {\"layout\": \"[40,30,30]\"}, \"elements\": [{\"node\": \"mdm_5\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_1\", \"element\": \"input\", \"data\": {\"name\": \"name\", \"label\": \"Domain\", \"type\": \"VARCHAR\", \"required\": 1, \"unique\": 1, \"set_only_time\": 1, \"in_list_view\": 1, \"searchable\": 1, \"description\": \"e.g. client.com — created in Migadu on save (or adopted if it already exists).\"}}]}, {\"node\": \"mdm_6\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_2\", \"element\": \"select\", \"data\": {\"name\": \"customer\", \"label\": \"Customer\", \"options\": \"Customer\", \"in_list_view\": 1, \"searchable\": 1}}]}, {\"node\": \"mdm_7\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_3\", \"element\": \"select\", \"data\": {\"name\": \"status\", \"label\": \"Status\", \"options\": \"Pending\\nActive\\nInactive\", \"default_value\": \"Pending\", \"readonly\": 1, \"in_list_view\": 1}}]}]}, {\"node\": \"mdm_11\", \"element\": \"row\", \"data\": {\"layout\": \"[33,33,33]\"}, \"elements\": [{\"node\": \"mdm_12\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_8\", \"element\": \"select\", \"data\": {\"name\": \"dns_provider\", \"label\": \"DNS\", \"options\": \"Cloudflare\\nManual\", \"default_value\": \"Cloudflare\", \"description\": \"Cloudflare: the records are written for you. Manual: copy them from Migadu.\"}}]}, {\"node\": \"mdm_13\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_9\", \"element\": \"switch\", \"data\": {\"name\": \"create_default_addresses\", \"label\": \"Create admin@, postmaster@, abuse@\", \"default_value\": 1, \"set_only_time\": 1}}]}, {\"node\": \"mdm_14\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_10\", \"element\": \"input\", \"data\": {\"name\": \"cloudflare_zone\", \"label\": \"Cloudflare zone\", \"readonly\": 1}}]}]}, {\"node\": \"mdm_17\", \"element\": \"row\", \"data\": {\"layout\": \"[50,50]\"}, \"elements\": [{\"node\": \"mdm_18\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_15\", \"element\": \"input\", \"data\": {\"name\": \"activated_at\", \"label\": \"Activated at\", \"readonly\": 1}}]}, {\"node\": \"mdm_19\", \"element\": \"col\", \"data\": {}, \"elements\": [{\"node\": \"mdm_16\", \"element\": \"input\", \"data\": {\"name\": \"last_checked\", \"label\": \"Last checked\", \"readonly\": 1}}]}]}, {\"node\": \"mdm_20\", \"element\": \"textarea\", \"data\": {\"name\": \"dns_report\", \"label\": \"DNS report\", \"readonly\": 1, \"description\": \"+ create · ~ update · - delete · = already correct\"}}, {\"node\": \"mdm_21\", \"element\": \"textarea\", \"data\": {\"name\": \"check_report\", \"label\": \"Migadu check\", \"readonly\": 1}}, {\"node\": \"mdm_22\", \"element\": \"textarea\", \"data\": {\"name\": \"notes\", \"label\": \"Notes\"}}]"
+}

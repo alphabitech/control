@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.33"
+    "version": "0.0.38"
   },
   "documents": {
     "Entity:Module": {
@@ -11,10 +11,10 @@
       "__app__": "loopar"
     },
     "App:control": {
-      "type": "Web App",
+      "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — control plane: billing, subscriptions and tenant administration",
-      "version": "0.0.33",
+      "version": "0.0.38",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -66,19 +66,10 @@
       "menu_actions": [],
       "info": ""
     },
-    "Entity:Module Group": {
-      "__app__": "loopar"
-    },
-    "Module Group:modules": {
-      "name": "modules",
-      "description": "Modules",
-      "in_sidebar": 1
-    },
     "Module:stripe": {
       "name": "stripe",
       "description": "stripe",
       "app_name": "control",
-      "module_group": "modules",
       "in_sidebar": 1
     },
     "Entity:Stripe Account": {
@@ -100,7 +91,6 @@
       "name": "subscriptions",
       "description": "subscriptions",
       "app_name": "control",
-      "module_group": "modules",
       "in_sidebar": 1
     },
     "Entity:Claim Token": {
@@ -155,9 +145,33 @@
       "name": "control",
       "description": "control",
       "app_name": "control",
-      "module_group": "modules",
       "icon": "Cloud",
       "in_sidebar": 1
+    },
+    "Module:mail-hosting": {
+      "name": "mail-hosting",
+      "description": "Mail hosting",
+      "app_name": "control",
+      "icon": "Mail",
+      "in_sidebar": 1
+    },
+    "Entity:Mail Hosting Settings": {
+      "__root__": "/apps/control/modules/mail-hosting/entities/mail-hosting-settings"
+    },
+    "Entity:Mail Domain": {
+      "__root__": "/apps/control/modules/mail-hosting/entities/mail-domain"
+    },
+    "Entity:Mailbox": {
+      "__root__": "/apps/control/modules/mail-hosting/entities/mailbox"
+    },
+    "Entity:Mail Alias": {
+      "__root__": "/apps/control/modules/mail-hosting/entities/mail-alias"
+    },
+    "Builder:Desk Page Builder": {
+      "__app__": "loopar"
+    },
+    "Desk Page Builder:Mail Hosting": {
+      "__root__": "/apps/control/modules/mail-hosting/desk-pages/mail-hosting"
     }
   },
   "postInstaller": {
@@ -169,6 +183,10 @@
     "Entity:Portal Link": "link",
     "Entity:Provisioned Tenant": "link",
     "Entity:Subscription": "link",
-    "Entity:Webhook Event": "link"
+    "Entity:Webhook Event": "link",
+    "Entity:Mail Hosting Settings": "link",
+    "Entity:Mail Domain": "link",
+    "Entity:Mailbox": "link",
+    "Entity:Mail Alias": "link"
   }
 }
