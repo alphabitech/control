@@ -115,7 +115,7 @@ export default class SignupController extends BaseController {
 
     let stripePortalUrl;
     try {
-      const stripeClient = Stripe(account.secret_key);
+      const stripeClient = new Stripe(account.secret_key);
       const returnUrl = tenant.tenantUrl(subscription.tenant_name);
       const session = await stripeClient.billingPortal.sessions.create({
         customer:   customer.stripe_customer_id,
@@ -225,7 +225,7 @@ export default class SignupController extends BaseController {
         return { status: 500, success: false, message: 'Stripe is not configured' };
       }
       try {
-        const stripeClient = Stripe(secretKey);
+        const stripeClient = new Stripe(secretKey);
         const list = await stripeClient.prices.list({
           active: true,
           limit: 100,
@@ -275,7 +275,7 @@ export default class SignupController extends BaseController {
       console.error('[signup] Stripe Account is not configured');
       return { status: 500, success: false, message: 'Stripe is not configured' };
     }
-    const stripeClient = Stripe(secretKey);
+    const stripeClient = new Stripe(secretKey);
 
     let price;
     try {
@@ -615,7 +615,7 @@ export default class SignupController extends BaseController {
     if (!secretKey) {
       return { status: 500, success: false, message: 'Stripe is not configured' };
     }
-    const stripeClient = Stripe(secretKey);
+    const stripeClient = new Stripe(secretKey);
 
     // ---- validate price -------------------------------------------------
     let price;
@@ -1049,7 +1049,7 @@ export default class SignupController extends BaseController {
     if (!secretKey) {
       return { status: 500, success: false, message: 'Stripe is not configured' };
     }
-    const stripeClient = Stripe(secretKey);
+    const stripeClient = new Stripe(secretKey);
 
     // Read the Stripe Sub so we know whether to send the trial or scheduled
     // copy, and so we can include the setup fee block when applicable.

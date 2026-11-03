@@ -45,7 +45,7 @@ export default class StripeWebhookController extends BaseController {
 
     let event;
     try {
-      const stripe = Stripe(secretKey);
+      const stripe = new Stripe(secretKey);
       event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     } catch (err) {
       console.error('[stripe-webhook] signature verification failed:', err.message);
@@ -235,7 +235,7 @@ export default class StripeWebhookController extends BaseController {
 
     // Fetch customer email + create portal session — all from Stripe.
     const account = await loopar.getDocument('Stripe Account');
-    const stripeClient = Stripe(account?.secret_key);
+    const stripeClient = new Stripe(account?.secret_key);
     let customerEmail = null;
     let portalUrl = null;
     try {
@@ -294,7 +294,7 @@ export default class StripeWebhookController extends BaseController {
     // Fetch the Sub to read its metadata.tenant_name (invoices don't carry
     // the subscription's metadata directly).
     const account = await loopar.getDocument('Stripe Account');
-    const stripeClient = Stripe(account?.secret_key);
+    const stripeClient = new Stripe(account?.secret_key);
     let tenantName = null;
     try {
       const stripeSub = await stripeClient.subscriptions.retrieve(stripeSubId);
