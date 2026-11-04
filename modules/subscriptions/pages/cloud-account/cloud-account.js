@@ -2,7 +2,7 @@
 
 import { BaseDocument } from 'loopar';
 
-export default class Customer extends BaseDocument {
+export default class CloudAccount extends BaseDocument {
   constructor(props) {
     super(props);
   }

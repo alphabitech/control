@@ -1,0 +1,8 @@
+{
+  "name": "Cloud Account",
+  "module": "subscriptions",
+  "enable_history": "0",
+  "enable_comments": "0",
+  "doc_structure": "[{\"node\": \"cac_2\", \"element\": \"section\", \"data\": {\"label\": \"Cloud Account\", \"class\": \"py-0\"}, \"elements\": [{\"node\": \"cac_1\", \"element\": \"slot\", \"data\": {\"label\": \"Cloud Account\", \"name\": \"account\"}}]}]",
+  "__ENTITY__": "Page Builder"
+}

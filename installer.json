@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.38"
+    "version": "0.0.40"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — control plane: billing, subscriptions and tenant administration",
-      "version": "0.0.38",
+      "version": "0.0.40",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -96,9 +96,6 @@
     "Entity:Claim Token": {
       "__root__": "/apps/control/modules/subscriptions/entities/claim-token"
     },
-    "Entity:Customer": {
-      "__root__": "/apps/control/modules/subscriptions/entities/customer"
-    },
     "Entity:Plan": {
       "__root__": "/apps/control/modules/subscriptions/entities/plan"
     },
@@ -125,6 +122,9 @@
     },
     "Page Builder:Loopar Pricing": {
       "__root__": "/apps/control/modules/subscriptions/pages/loopar-pricing"
+    },
+    "Page Builder:Cloud Account": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-account"
     },
     "Builder:Controller Builder": {
       "__app__": "loopar"
@@ -178,7 +178,6 @@
     "App:control": "link",
     "Entity:Stripe Account": "link",
     "Entity:Claim Token": "link",
-    "Entity:Customer": "link",
     "Entity:Plan": "link",
     "Entity:Portal Link": "link",
     "Entity:Provisioned Tenant": "link",

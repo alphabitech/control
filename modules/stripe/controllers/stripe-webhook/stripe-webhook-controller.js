@@ -3,6 +3,8 @@
 import { BaseController, loopar, tenant } from 'loopar';
 import Stripe from 'stripe';
 import { provisionTenant } from '../../../subscriptions/provisioning.js';
+import { grantPortalAccessQuietly } from '../../../subscriptions/account-service.js';
+import { stripeIdOf, setStripeId } from '../../../subscriptions/stripe-customer.js';
 
 /**
  * Hydrate a Tenant Manager doc for the given tenant name, or null if it
@@ -379,15 +381,18 @@ export default class StripeWebhookController extends BaseController {
     await subscription.save();
 
     // Link Stripe customer id back to the local Customer row.
-    if (session.customer && subscription.customer) {
-      const customer = await loopar.getDocument('Customer', subscription.customer);
-      if (customer?.name && !customer.stripe_customer_id) {
-        customer.stripe_customer_id = session.customer;
-        await customer.save();
-      }
+    if (session.customer && subscription.customer && !(await stripeIdOf(subscription.customer))) {
+      await setStripeId(subscription.customer, session.customer);
     }
 
     await this._markProcessed(event.id);
+
+    // Workspace plans give the customer portal access (billing, websites,
+    // email). Background, once per customer; the request host is the
+    // control plane, so the emailed link points back here.
+    if (session?.metadata?.tenant_name && subscription.customer) {
+      grantPortalAccessQuietly(subscription.customer, { req: this.req });
+    }
 
     // Cloud purchases trigger the actual tenant provisioning. We don't
     // await it — Stripe wants a fast 200, and the Caddy + PM2 spin-up takes

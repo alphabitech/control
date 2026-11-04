@@ -1,6 +1,6 @@
 'use strict';
 
-import { BaseDocument, loopar } from 'loopar';
+import { BaseDocument, loopar, tenant } from 'loopar';
 import {
   DOMAIN, fail, truthy, normalizeDomain, ensureRemoteDomain, domainStatus, isFromRemote,
 } from '../../mail-service.js';
@@ -19,6 +19,8 @@ export default class MailDomain extends BaseDocument {
   }
 
   async beforeSave() {
+    if (!isFromRemote(this)) await this.#linkWorkspace();
+
     if (this.__IS_NEW__) {
       this.name = normalizeDomain(this.name);
       if (isFromRemote(this)) return;
@@ -39,6 +41,20 @@ export default class MailDomain extends BaseDocument {
     if (isFromRemote(this)) return;
     const row = await loopar.db.getRow(DOMAIN, this.__DOCUMENT_NAME__ || this.name, SYSTEM_FIELDS);
     if (row) for (const f of SYSTEM_FIELDS) this[f] = row[f];
+  }
+
+  /**
+   * The workspace (tenant) whose plan includes this email: it must exist,
+   * and when no customer is set it brings the customer of its subscription.
+   */
+  async #linkWorkspace() {
+    this.tenant_name = String(this.tenant_name || '').trim().toLowerCase();
+    if (!this.tenant_name) return;
+    if (!tenant.readTenant(this.tenant_name)) fail(`Workspace "${this.tenant_name}" does not exist.`);
+    if (this.customer) return;
+    const subs = await loopar.db.getAll('Subscription', ['customer'], { tenant_name: this.tenant_name });
+    const customer = subs.map((r) => r.customer).find(Boolean);
+    if (customer) this.customer = customer;
   }
 
   /** Writes fields the actions maintain, without running the form hooks. */

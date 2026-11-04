@@ -58,6 +58,8 @@ export const isFromRemote = (doc) => FROM_REMOTE.has(doc);
 /* Providers                                                           */
 /* ------------------------------------------------------------------ */
 
+export const DEFAULT_WEBMAIL_URL = 'https://webmail.migadu.com';
+
 export async function settings() {
   let doc = null;
   try {
@@ -71,6 +73,8 @@ export async function settings() {
     cloudflare_api_token: doc?.cloudflare_api_token || '',
     dmarc_policy: doc?.dmarc_policy || 'quarantine',
     dmarc_report_email: doc?.dmarc_report_email || '',
+    webmail_url: doc?.webmail_url || DEFAULT_WEBMAIL_URL,
+    default_mailbox_limit: Math.max(0, parseInt(doc?.default_mailbox_limit, 10) || 0),
   };
 }
 
@@ -217,6 +221,33 @@ export async function checkAndActivate(domain) {
     describeDiagnostics(diagnostics),
   ].join('\n');
   return { status, activated, message, report, activatedAt: current?.activated_at || null };
+}
+
+/* ------------------------------------------------------------------ */
+/* Mailbox password                                                    */
+/* ------------------------------------------------------------------ */
+
+/** Asks Migadu to email the owner a link to choose a new password. */
+export async function sendMailboxInvitation(doc, recoveryEmail) {
+  const email = String(recoveryEmail || doc.recovery_email || '').trim();
+  if (!isEmail(email)) fail('Enter the email where the invitation should go.');
+  if (email.toLowerCase() === doc.name) fail('The invitation must go to a different address than the mailbox itself.');
+
+  const api = await migadu();
+  await remote(() => api.updateMailbox(doc.domain, doc.local_part, {
+    password_method: 'invitation',
+    password_recovery_email: email,
+  }));
+  await loopar.db.updateRow(MAILBOX, doc.name, { recovery_email: email, invited_at: now() });
+  return email;
+}
+
+/** Sets the password directly. It goes to Migadu only; Loopar does not store it. */
+export async function setMailboxPassword(doc, password) {
+  password = String(password ?? '');
+  if (password.length < 10) fail('Use at least 10 characters.');
+  const api = await migadu();
+  await remote(() => api.updateMailbox(doc.domain, doc.local_part, { password }));
 }
 
 /* ------------------------------------------------------------------ */

@@ -14,6 +14,8 @@ import {
   controlPlaneBaseUrlFromReq,
 } from '../../portal-link-issuer.js';
 import {RESERVED_NAMES, SUBDOMAIN_RE, EMAIL_RE, PLANS_CACHE_TTL_MS, shapePrice, sortByOrder} from "./helper.js"
+import { grantPortalAccessQuietly } from '../../account-service.js';
+import { stripeIdOf, setStripeId } from '../../stripe-customer.js';
 
 let plansCache = { data: null, fetchedAt: 0 };
 
@@ -101,7 +103,8 @@ export default class SignupController extends BaseController {
     const customer = subscription.customer
       ? await loopar.getDocument('Customer', subscription.customer, null, { ifNotFound: null })
       : null;
-    if (!customer?.stripe_customer_id) {
+    const stripeId = customer ? await stripeIdOf(customer.name) : null;
+    if (!stripeId) {
       return this._sendPortalErrorHtml('customer_missing');
     }
 
@@ -118,7 +121,7 @@ export default class SignupController extends BaseController {
       const stripeClient = new Stripe(account.secret_key);
       const returnUrl = tenant.tenantUrl(subscription.tenant_name);
       const session = await stripeClient.billingPortal.sessions.create({
-        customer:   customer.stripe_customer_id,
+        customer:   stripeId,
         return_url: returnUrl,
       });
       stripePortalUrl = session.url;
@@ -339,8 +342,9 @@ export default class SignupController extends BaseController {
     } else {
       customer = await loopar.newDocument('Customer');
       customer.name = email;
+      customer.customer_name = email;
       customer.email  = email;
-      customer.status = 'active';
+      customer.status = 'Active';
       try {
         await customer.save();
       } catch (err) {
@@ -641,8 +645,9 @@ export default class SignupController extends BaseController {
     } else {
       customer = await loopar.newDocument('Customer');
       customer.name   = email;
+      customer.customer_name = email;
       customer.email  = email;
-      customer.status = 'active';
+      customer.status = 'Active';
       try {
         await customer.save();
       } catch (err) {
@@ -654,10 +659,9 @@ export default class SignupController extends BaseController {
     // Trial and scheduled modes call subscriptions.create directly, so we
     // need a Stripe Customer id up front (Checkout would create one from
     // `customer_email` for us). Look in Stripe first to avoid creating a
-    // duplicate if we already made one in a prior attempt. The local update
-    // goes through `db.updateRow` because `doc.save()` on a row loaded via
-    // getDocument was emitting an INSERT and tripping the unique constraint.
-    if (mode !== 'checkout' && !customer.stripe_customer_id) {
+    // duplicate if we already made one in a prior attempt.
+    let stripeId = await stripeIdOf(customer.name);
+    if (mode !== 'checkout' && !stripeId) {
       try {
         let stripeCustomerId = null;
         const existing = await stripeClient.customers.list({ email, limit: 1 });
@@ -667,8 +671,8 @@ export default class SignupController extends BaseController {
           const stripeCustomer = await stripeClient.customers.create({ email });
           stripeCustomerId = stripeCustomer.id;
         }
-        await loopar.db.updateRow('Customer', customer.name, { stripe_customer_id: stripeCustomerId });
-        customer.stripe_customer_id = stripeCustomerId;
+        await setStripeId(customer.name, stripeCustomerId);
+        stripeId = stripeCustomerId;
       } catch (err) {
         console.error('[signup/createForExisting] ensure Stripe customer failed:', err.message);
         return { status: 500, success: false, message: `Could not ensure Stripe customer: ${err.message}` };
@@ -729,7 +733,7 @@ export default class SignupController extends BaseController {
       const trialDays = Math.max(1, Math.min(365, parseInt(data.trial_days, 10) || 30));
       try {
         stripeSub = await stripeClient.subscriptions.create({
-          customer: customer.stripe_customer_id,
+          customer: stripeId,
           items:    [{ price: priceId }],
           trial_period_days:   trialDays,
           payment_behavior:    'default_incomplete',
@@ -760,7 +764,7 @@ export default class SignupController extends BaseController {
       const anchorTs = Math.floor(anchorDate.getTime() / 1000);
       try {
         stripeSub = await stripeClient.subscriptions.create({
-          customer:              customer.stripe_customer_id,
+          customer:              stripeId,
           items:                 [{ price: priceId }],
           billing_cycle_anchor:  anchorTs,
           proration_behavior:    'none',
@@ -817,7 +821,7 @@ export default class SignupController extends BaseController {
           const phaseEndTs = Math.floor(phaseEnd.getTime() / 1000);
 
           const schedule = await stripeClient.subscriptionSchedules.create({
-            customer:     customer.stripe_customer_id,
+            customer:     stripeId,
             start_date:   'now',
             end_behavior: 'cancel',
             phases: [{
@@ -838,7 +842,7 @@ export default class SignupController extends BaseController {
           setupScheduleId = schedule.id;
         } else {
           await stripeClient.invoiceItems.create({
-            customer:     customer.stripe_customer_id,
+            customer:     stripeId,
             amount:       setupFeeCents,
             currency:     (price.currency || 'usd'),
             description:  setupFeeLabel,
@@ -883,6 +887,10 @@ export default class SignupController extends BaseController {
       return { status: 500, success: false, message: 'Subscription saved in Stripe but failed locally — reconcile manually' };
     }
 
+    // Customer portal access (billing, websites, email): created once per
+    // customer, in the background; a failure never blocks the subscription.
+    grantPortalAccessQuietly(customer.name, { req: this.req });
+
     // ---- Activation link (for trial / scheduled) ----------------------
     // Mint a Portal Link tied to the billing-cycle end. The link is a
     // stable Loopar URL that, when clicked, generates a fresh Stripe
@@ -890,7 +898,7 @@ export default class SignupController extends BaseController {
     // period instead of expiring an hour after we send it.
     let actionUrl     = null;
     let linkExpiresAt = null;
-    if (stripeSub && customer.stripe_customer_id && (mode === 'trial' || mode === 'scheduled')) {
+    if (stripeSub && stripeId && (mode === 'trial' || mode === 'scheduled')) {
       try {
         const nowSec     = Math.floor(Date.now() / 1000);
         const SEVEN_DAYS = 7 * 24 * 60 * 60;
@@ -1036,7 +1044,8 @@ export default class SignupController extends BaseController {
     const customer = subscription.customer
       ? await loopar.getDocument('Customer', subscription.customer)
       : null;
-    if (!customer?.email || !customer.stripe_customer_id) {
+    const stripeId = customer ? await stripeIdOf(customer.name) : null;
+    if (!customer?.email || !stripeId) {
       return {
         status: 409,
         success: false,
@@ -1091,7 +1100,7 @@ export default class SignupController extends BaseController {
     let setupInfo = null;
     try {
       const schedules = await stripeClient.subscriptionSchedules.list({
-        customer: customer.stripe_customer_id,
+        customer: stripeId,
         limit:    20,
       });
       const match = (schedules.data || []).find(s =>
