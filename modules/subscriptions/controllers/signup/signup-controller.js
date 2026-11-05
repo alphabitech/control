@@ -496,15 +496,14 @@ export default class SignupController extends BaseController {
    *
    * Returns tenants in `sites/` that do NOT have an active/trialing
    * Subscription. Used by the "New Subscription for existing tenant" modal
-   * to populate the tenant selector. Excludes control-plane tenants
-   * (`dev`, `cloud`, `loopar`) which never get billed.
+   * to populate the tenant selector. Excludes control-plane tenants, which
+   * never get billed.
    */
   async actionListAvailableTenants() {
-    const excluded = new Set(['dev', 'cloud', 'loopar']);
     const all = tenant.tenants();
     const available = [];
     for (const t of all) {
-      if (!t?.name || excluded.has(t.name)) continue;
+      if (!t?.name || t.controlPlane) continue;
       const existingSubName = await loopar.db.getValue(
         'Subscription', 'tenant_name', t.name, { ifNotFound: null }
       );
