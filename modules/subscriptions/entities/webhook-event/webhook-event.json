@@ -11,5 +11,6 @@
   "search_fields": "",
   "title_fields": "",
   "resources": [],
-  "__ENTITY__": "Entity"
+  "__ENTITY__": "Entity",
+  "read_only": 1
 }

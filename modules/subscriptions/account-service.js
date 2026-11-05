@@ -315,9 +315,11 @@ async function sendInvitationEmail({ to, url, firstTime }) {
 /**
  * Gives the Customer's contact (the one with the customer's email, created
  * when missing) a Web user and emails a sign-in link. Idempotent: an already
- * linked contact just gets a new link. Returns { user, created, emailed }.
+ * linked contact just gets a new link. Returns { user, email, created, emailed },
+ * plus `url` (the one-use sign-in link) when `returnLink` is set — for the
+ * operator, who may open it in a private window to see the customer's portal.
  */
-export async function grantPortalAccess(customerName, { req = null, sendEmail = true } = {}) {
+export async function grantPortalAccess(customerName, { req = null, sendEmail = true, returnLink = false } = {}) {
   const customer = await loopar.db.getRow('Customer', customerName, ['name', 'email', 'customer_name']);
   if (!customer) fail(`Customer ${customerName} does not exist.`, 404);
   const email = String(customer.email || '').trim().toLowerCase();
@@ -331,12 +333,12 @@ export async function grantPortalAccess(customerName, { req = null, sendEmail = 
   const firstTime = created || [1, '1', true].includes(user?.must_change_password);
 
   let emailed = false;
+  const url = sendEmail || returnLink ? await activationUrl(userName, req) : null;
   if (sendEmail) {
-    const url = await activationUrl(userName, req);
     await sendInvitationEmail({ to: email, url, firstTime });
     emailed = true;
   }
-  return { user: userName, created, emailed };
+  return { user: userName, email, created, emailed, ...(returnLink ? { url } : {}) };
 }
 
 /** Fire-and-forget variant for billing flows: never fails the caller. */

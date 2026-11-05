@@ -15,5 +15,6 @@
   "__created_at__": null,
   "__updated_at__": null,
   "__deleted_at__": null,
-  "__ENTITY__": "Entity"
+  "__ENTITY__": "Entity",
+  "read_only": 1
 }

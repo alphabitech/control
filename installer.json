@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.42"
+    "version": "0.0.44"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — websites, business email and business tools",
-      "version": "0.0.42",
+      "version": "0.0.44",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -249,6 +249,36 @@
     },
     "Desk Page Builder:Mail Hosting": {
       "__root__": "/apps/control/modules/mail-hosting/desk-pages/mail-hosting"
+    },
+    "Desk Page Builder:Cloud": {
+      "__root__": "/apps/control/modules/control/desk-pages/cloud"
+    },
+    "Entity:Dashboard Chart": {
+      "__app__": "loopar"
+    },
+    "Dashboard Chart:Cloud subscriptions by status": {
+      "name": "Cloud subscriptions by status",
+      "entity": "Subscription",
+      "chart_type": "donut",
+      "label": "Subscriptions by status",
+      "aggregate": "count",
+      "group_by": "field",
+      "x_field": "status",
+      "timespan": "0",
+      "top_n": "",
+      "description": "Every subscription grouped by its Stripe status."
+    },
+    "Dashboard Chart:Cloud new subscriptions": {
+      "name": "Cloud new subscriptions",
+      "entity": "Subscription",
+      "chart_type": "bar",
+      "label": "New subscriptions",
+      "aggregate": "count",
+      "group_by": "time",
+      "x_field": "__created_at__",
+      "time_grain": "month",
+      "timespan": "365",
+      "description": "Subscriptions created per month, last 12 months."
     },
     "Entity:Legal Notice": {
       "__app__": "loopar"
