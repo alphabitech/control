@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.40"
+    "version": "0.0.41"
   },
   "documents": {
     "Entity:Module": {
@@ -13,22 +13,22 @@
     "App:control": {
       "has_website": 1,
       "name": "control",
-      "description": "Loopar Cloud — control plane: billing, subscriptions and tenant administration",
-      "version": "0.0.40",
+      "description": "Loopar Cloud — websites, business email and business tools",
+      "version": "0.0.41",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
       "col_padding": "",
       "col_margin": "",
-      "logo": "[{\"name\":\"logo-light.svg\",\"size\":16526,\"type\":\"image\",\"src\":\"/assets/public/logo-light.svg\"}]",
-      "logo_dark": "[{\"name\":\"logo-dark.svg\",\"size\":16646,\"type\":\"image\",\"src\":\"/assets/public/logo-dark.svg\"}]",
-      "logo_mini": "[{\"name\":\"logo-mini-light.svg\",\"size\":810,\"type\":\"image\",\"src\":\"/assets/public/logo-mini-light.svg\"}]",
-      "logo_mini_dark": "[{\"name\":\"logo-mini-dark.svg\",\"size\":810,\"type\":\"image\",\"src\":\"/assets/public/logo-mini-dark.svg\"}]",
-      "favicon": "[{\"name\":\"logo-mini-dark.svg\",\"size\":810,\"type\":\"image\",\"src\":\"/assets/public/logo-mini-dark.svg\"}]",
-      "logo_height": "",
-      "has_footer": 0,
-      "has_copyright": 0,
-      "fixed": 0,
+      "logo": "[{\"name\":\"cloud-logo-light.svg\",\"type\":\"image\",\"src\":\"/assets/public/cloud-logo-light.svg\"}]",
+      "logo_dark": "[{\"name\":\"cloud-logo-dark.svg\",\"type\":\"image\",\"src\":\"/assets/public/cloud-logo-dark.svg\"}]",
+      "logo_mini": "[{\"name\":\"cloud-mark.svg\",\"type\":\"image\",\"src\":\"/assets/public/cloud-mark.svg\"}]",
+      "logo_mini_dark": "[{\"name\":\"cloud-mark.svg\",\"type\":\"image\",\"src\":\"/assets/public/cloud-mark.svg\"}]",
+      "favicon": "[{\"name\":\"cloud-mark.svg\",\"type\":\"image\",\"src\":\"/assets/public/cloud-mark.svg\"}]",
+      "logo_height": "32",
+      "has_footer": 1,
+      "has_copyright": 1,
+      "fixed": 1,
       "logo_position": "",
       "rounded": "",
       "show_user_section": 1,
@@ -37,9 +37,45 @@
       "menu_items": [
         {
           "parent_document": "App",
+          "name": "cloudmenuhome01",
+          "page": "Cloud Home",
+          "link": "Home",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 0
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudmenufeat02",
+          "page": "Cloud Features",
+          "link": "Features",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 0
+        },
+        {
+          "parent_document": "App",
           "name": "Z710lF7471TdKin",
           "page": "Loopar Pricing",
           "link": "Pricing",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 0
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudmenufaq003",
+          "page": "Cloud FAQ",
+          "link": "FAQ",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 0
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudmenucont04",
+          "page": "Cloud Contact",
+          "link": "Contact",
           "parent_menu": null,
           "document_parent_name": null,
           "router_only": 0
@@ -61,10 +97,36 @@
           "parent_menu": null,
           "document_parent_name": null,
           "router_only": 1
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudmenulegl05",
+          "page": "Cloud Legal",
+          "link": "legal",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 1
         }
       ],
-      "menu_actions": [],
-      "info": ""
+      "menu_actions": [
+        {
+          "parent_document": "App",
+          "name": "cloudactacct001",
+          "icon": "UserRound",
+          "action": "/portal/Cloud Account/view"
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudactstart02",
+          "icon": "Rocket",
+          "label": "Get started",
+          "action": "/pricing"
+        }
+      ],
+      "info": "",
+      "footer": "<div style=\"display: flex; flex-wrap: wrap; justify-content: space-between; padding: 40px 20px; gap: 30px;\">\n  <div style=\"flex: 1.4; min-width: 260px;\">\n\n    ### Loopar Cloud\n\n    Websites, business email and business tools, built for you or by you, and managed from one account.\n  </div>\n\n  <div style=\"flex: 1; min-width: 160px;\">\n\n    ### Product\n\n    * [Features](/features)\n    * [Pricing](/pricing)\n    * [FAQ](/faq)\n  </div>\n\n  <div style=\"flex: 1; min-width: 160px;\">\n\n    ### Account\n\n    * [My account](/portal/Cloud Account/view)\n    * [Contact](/contact)\n    * [Loopar framework](https://loopar.build)\n  </div>\n\n  <div style=\"flex: 1; min-width: 160px;\">\n\n    ### Legal\n\n    * [Terms of Service](/legal/terms-of-service)\n    * [Privacy Policy](/legal/privacy-policy)\n  </div>\n</div>",
+      "copyright": "<div style=\"text-align: center; padding: 20px; border-top: 1px solid rgba(128,128,128,0.3); font-size: 0.9em;\">\n  © 2026 **AlphaBit Technology Inc.** · Powered by [Loopar](https://loopar.build)\n</div>",
+      "theme": "{\"theme\":\"custom\",\"darkMode\":\"auto\",\"darkIntensity\":0.15,\"darkCustomColor\":\"#0a0a0a\",\"includeTitles\":true,\"brand\":{\"primary\":\"#4338ca\",\"accent\":\"#06b6d4\",\"background\":\"#f8fafc\",\"foreground\":\"#0f172a\"}}"
     },
     "Module:stripe": {
       "name": "stripe",
@@ -114,14 +176,29 @@
     "Builder:Page Builder": {
       "__app__": "loopar"
     },
+    "Page Builder:Cloud Home": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-home"
+    },
+    "Page Builder:Cloud Features": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-features"
+    },
+    "Page Builder:Loopar Pricing": {
+      "__root__": "/apps/control/modules/subscriptions/pages/loopar-pricing"
+    },
+    "Page Builder:Cloud FAQ": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-faq"
+    },
+    "Page Builder:Cloud Contact": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-contact"
+    },
+    "Page Builder:Cloud Legal": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-legal"
+    },
     "Page Builder:Cloud Cancel": {
       "__root__": "/apps/control/modules/subscriptions/pages/cloud-cancel"
     },
     "Page Builder:Cloud Success": {
       "__root__": "/apps/control/modules/subscriptions/pages/cloud-success"
-    },
-    "Page Builder:Loopar Pricing": {
-      "__root__": "/apps/control/modules/subscriptions/pages/loopar-pricing"
     },
     "Page Builder:Cloud Account": {
       "__root__": "/apps/control/modules/subscriptions/pages/cloud-account"
@@ -172,6 +249,31 @@
     },
     "Desk Page Builder:Mail Hosting": {
       "__root__": "/apps/control/modules/mail-hosting/desk-pages/mail-hosting"
+    },
+    "Entity:Legal Notice": {
+      "__app__": "loopar"
+    },
+    "Legal Notice:cloud-terms-of-service": {
+      "name": "cloud-terms-of-service",
+      "title": "Terms of Service",
+      "slug": "terms-of-service",
+      "app": "control",
+      "published": 1,
+      "effective_date": "2026-11-04",
+      "last_updated": "2026-11-04",
+      "summary": "",
+      "description": "These Terms of Service (\"Terms\") govern your use of Loopar Cloud, a service operated by AlphaBit Technology Inc. (\"we\", \"us\"). By creating an account, subscribing to a plan or using the service, you agree to these Terms.\n\n## 1. The service\n\nLoopar Cloud provides hosted workspaces built on the open-source Loopar framework, websites, business email and related services. Some plans are self-service (\"Build it yourself\"); others include work done by our team (\"Done for you\"), whose scope is agreed with you in a proposal.\n\n## 2. Your account\n\nYou are responsible for the information in your account, for keeping your passwords safe and for everything done with your account. Tell us right away if you think someone else has access to it.\n\n## 3. Plans, payments and renewals\n\nPlans are billed in advance through Stripe and renew automatically at the end of each billing period until you cancel. Prices are shown on the pricing page or in your proposal. Taxes may apply. You can change your payment method, see your invoices and cancel from \"Manage billing\" in your account.\n\n## 4. Cancellation and suspension\n\nYou can cancel at any time; the plan stays active until the end of the period already paid unless stated otherwise when you cancel. If a payment fails and is not resolved, or a plan ends, we may suspend the workspace, its websites and its email. A suspended workspace is not deleted right away; contact us to reactivate it or to request a copy of your data. We may delete suspended workspaces after a reasonable period.\n\n## 5. Acceptable use\n\nYou may not use the service to send spam, distribute malware, infringe the rights of others, host illegal content or interfere with the service or other customers. We may suspend accounts that put the service, other customers or third parties at risk.\n\n## 6. Your content\n\nYou keep all rights to the content and data you put in the service. You give us the permission needed to host, back up and display it in order to provide the service.\n\n## 7. Third-party services\n\nThe service relies on providers such as Stripe (payments) and email, DNS and infrastructure providers. Their own terms apply to their part of the service.\n\n## 8. Availability and changes\n\nWe work to keep the service available and secure, but we do not guarantee it will be uninterrupted or error-free. We may change or improve the service; if a change materially reduces what you pay for, we will tell you in advance.\n\n## 9. Limitation of liability\n\nTo the extent permitted by law, the service is provided \"as is\", and our total liability for any claim is limited to the amount you paid us in the twelve months before the claim. We are not liable for indirect or consequential damages, or for lost profits or data.\n\n## 10. Changes to these Terms\n\nWe may update these Terms. We will publish the new version on this page with its effective date and, for material changes, notify you in advance.\n\n## 11. Contact\n\nQuestions about these Terms can be sent through the contact page of this website."
+    },
+    "Legal Notice:cloud-privacy-policy": {
+      "name": "cloud-privacy-policy",
+      "title": "Privacy Policy",
+      "slug": "privacy-policy",
+      "app": "control",
+      "published": 1,
+      "effective_date": "2026-11-04",
+      "last_updated": "2026-11-04",
+      "summary": "",
+      "description": "This Privacy Policy explains how AlphaBit Technology Inc. (\"we\", \"us\") collects and uses personal information when you visit this website or use Loopar Cloud.\n\n## Information we collect\n\n- **Account and billing details:** your name, email address and the plan you use. Payments are processed by Stripe; we do not see or store your full card number.\n- **Messages you send us:** what you write in the contact form, including your name and email.\n- **Service data:** the content, records and email you keep in your workspace. We process it only to provide the service.\n- **Technical data:** basic information such as pages visited, browser type and IP address, used to run, secure and improve the website.\n\n## How we use it\n\nTo provide and support the service, process payments, send messages about your account (such as invoices, password links and security notices), answer your requests, prevent abuse and meet legal obligations. We do not sell your personal information.\n\n## Who we share it with\n\nOnly with providers that help us run the service, such as payment processing (Stripe), email delivery, DNS and hosting, and only as needed for that purpose; or when the law requires it.\n\n## Email you host with us\n\nMail in the mailboxes you host with us belongs to you and the people who use them. Each mailbox owner sets their own password, and we do not read mailbox content except when needed to deliver the service or when the law requires it.\n\n## Retention\n\nWe keep account and billing records while you are a customer and as long as needed for legal and accounting purposes. Workspace data is kept while your plan is active and for a limited time after it ends, so it can be recovered.\n\n## Your choices\n\nYou can update your account details from your account, and ask us to access, correct or delete your personal information through the contact page.\n\n## Changes\n\nWe may update this policy. The current version is always on this page with its effective date.\n\n## Contact\n\nQuestions about privacy can be sent through the contact page of this website."
     }
   },
   "postInstaller": {

@@ -1,0 +1,8 @@
+{
+  "name": "Cloud Legal",
+  "module": "subscriptions",
+  "enable_history": 0,
+  "enable_comments": 0,
+  "doc_structure": "[{\"node\":\"cl_001\",\"element\":\"collection_view\",\"data\":{\"label\":\"Legal notice\",\"options\":\"Legal Notice\"}}]",
+  "__ENTITY__": "Page Builder"
+}
