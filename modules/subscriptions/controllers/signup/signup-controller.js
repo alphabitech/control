@@ -357,7 +357,8 @@ export default class SignupController extends BaseController {
       if (!SUBDOMAIN_RE.test(workspaceName)) {
         return { status: 400, success: false, message: 'Invalid workspace name (lowercase, 3-30 chars, must start with a letter)' };
       }
-      if (RESERVED_NAMES.has(workspaceName)) {
+      // `<x>-demo` names are kept for the template demos (<x>-demo.<domain>).
+      if (RESERVED_NAMES.has(workspaceName) || workspaceName.endsWith('-demo')) {
         return { status: 400, success: false, message: 'That workspace name is reserved' };
       }
       // No port anymore — every tenant is served by the core. Just ensure the
