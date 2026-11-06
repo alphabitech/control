@@ -2,12 +2,19 @@
 
 import { BaseController, loopar } from 'loopar';
 import { grantPortalAccess } from '../../account-service.js';
+import { syncSubscription } from '../../subscription-sync.js';
 
 export default class SubscriptionController extends BaseController {
   static postOnlyActions = ['portalAccess'];
 
   constructor(props) {
     super(props);
+  }
+
+  /** Opening a record shows Stripe's current state. */
+  async actionView(...args) {
+    if (this.query?.name) await syncSubscription(this.query.name);
+    return await super.actionView(...args);
   }
 
   /**
