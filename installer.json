@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.45"
+    "version": "0.0.47"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — websites, business email and business tools",
-      "version": "0.0.45",
+      "version": "0.0.47",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -49,6 +49,15 @@
           "name": "cloudmenufeat02",
           "page": "Cloud Features",
           "link": "Features",
+          "parent_menu": null,
+          "document_parent_name": null,
+          "router_only": 0
+        },
+        {
+          "parent_document": "App",
+          "name": "cloudmenutmpl03",
+          "page": "Cloud Templates",
+          "link": "Templates",
           "parent_menu": null,
           "document_parent_name": null,
           "router_only": 0
@@ -173,6 +182,9 @@
     "Entity:Webhook Event": {
       "__root__": "/apps/control/modules/subscriptions/entities/webhook-event"
     },
+    "Entity:Site Template": {
+      "__root__": "/apps/control/modules/subscriptions/entities/site-template"
+    },
     "Builder:Page Builder": {
       "__app__": "loopar"
     },
@@ -181,6 +193,9 @@
     },
     "Page Builder:Cloud Features": {
       "__root__": "/apps/control/modules/subscriptions/pages/cloud-features"
+    },
+    "Page Builder:Cloud Templates": {
+      "__root__": "/apps/control/modules/subscriptions/pages/cloud-templates"
     },
     "Page Builder:Loopar Pricing": {
       "__root__": "/apps/control/modules/subscriptions/pages/loopar-pricing"
@@ -235,6 +250,9 @@
     "Entity:Mail Hosting Settings": {
       "__root__": "/apps/control/modules/mail-hosting/entities/mail-hosting-settings"
     },
+    "Entity:Mail Policy": {
+      "__root__": "/apps/control/modules/mail-hosting/entities/mail-policy"
+    },
     "Entity:Mail Domain": {
       "__root__": "/apps/control/modules/mail-hosting/entities/mail-domain"
     },
@@ -243,6 +261,24 @@
     },
     "Entity:Mail Alias": {
       "__root__": "/apps/control/modules/mail-hosting/entities/mail-alias"
+    },
+    "Mail Policy:Recommended": {
+      "name": "Recommended",
+      "spf_mode": "strict",
+      "spf_all": "-all",
+      "sender_google": 0,
+      "sender_microsoft": 0,
+      "sender_amazon_ses": 0,
+      "sender_sendgrid": 0,
+      "sender_mailgun": 0,
+      "sender_brevo": 0,
+      "sender_zoho": 0,
+      "spf_custom": "",
+      "dmarc_policy": "quarantine",
+      "dmarc_subdomain": "inherit",
+      "dmarc_reports": "keep",
+      "dmarc_rua": "",
+      "notes": "Only Migadu may send as the domain; mail that fails is sent to spam. Check the services that also send for a client before applying it."
     },
     "Builder:Desk Page Builder": {
       "__app__": "loopar"
@@ -304,6 +340,39 @@
       "last_updated": "2026-11-04",
       "summary": "",
       "description": "This Privacy Policy explains how AlphaBit Technology Inc. (\"we\", \"us\") collects and uses personal information when you visit this website or use Loopar Cloud.\n\n## Information we collect\n\n- **Account and billing details:** your name, email address and the plan you use. Payments are processed by Stripe; we do not see or store your full card number.\n- **Messages you send us:** what you write in the contact form, including your name and email.\n- **Service data:** the content, records and email you keep in your workspace. We process it only to provide the service.\n- **Technical data:** basic information such as pages visited, browser type and IP address, used to run, secure and improve the website.\n\n## How we use it\n\nTo provide and support the service, process payments, send messages about your account (such as invoices, password links and security notices), answer your requests, prevent abuse and meet legal obligations. We do not sell your personal information.\n\n## Who we share it with\n\nOnly with providers that help us run the service, such as payment processing (Stripe), email delivery, DNS and hosting, and only as needed for that purpose; or when the law requires it.\n\n## Email you host with us\n\nMail in the mailboxes you host with us belongs to you and the people who use them. Each mailbox owner sets their own password, and we do not read mailbox content except when needed to deliver the service or when the law requires it.\n\n## Retention\n\nWe keep account and billing records while you are a customer and as long as needed for legal and accounting purposes. Workspace data is kept while your plan is active and for a limited time after it ends, so it can be recovered.\n\n## Your choices\n\nYou can update your account details from your account, and ask us to access, correct or delete your personal information through the contact page.\n\n## Changes\n\nWe may update this policy. The current version is always on this page with its effective date.\n\n## Contact\n\nQuestions about privacy can be sent through the contact page of this website."
+    },
+    "Site Template:construction-site": {
+      "name": "construction-site",
+      "title": "Construction & Remodeling",
+      "sector": "Construction",
+      "published": 1,
+      "order": 1,
+      "summary": "A full site for general contractors and remodelers: services, about, reviews and a contact form ready for estimate requests.",
+      "features": "Home, About, Services, Reviews and Contact pages\nService cards for kitchens, baths, decks and additions\nProject highlights and FAQ\nContact form with spam protection",
+      "demo_url": "https://construction-demo.loopar.build",
+      "cover_image": "[{\"name\": \"photo-1565183928294-7063f23ce0f8.jpg\", \"type\": \"image\", \"src\": \"https://images.unsplash.com/photo-1565183928294-7063f23ce0f8?auto=format&fit=crop&w=1200&q=80\"}]"
+    },
+    "Site Template:cleaning-site": {
+      "name": "cleaning-site",
+      "title": "Cleaning Services",
+      "sector": "Cleaning",
+      "published": 1,
+      "order": 2,
+      "summary": "A site for residential and commercial cleaners with an instant online price calculator that turns visitors into quote requests.",
+      "features": "Instant estimate calculator (house, office, windows)\nQuotes land in your desk with a printable quote sheet\nPrices and options editable without code\nHome, About, Services, Reviews and Contact pages",
+      "demo_url": "https://cleaning-demo.loopar.build",
+      "cover_image": "[{\"name\": \"photo-1758273238415-01ec03d9ef27.jpg\", \"type\": \"image\", \"src\": \"https://images.unsplash.com/photo-1758273238415-01ec03d9ef27?auto=format&fit=crop&w=1200&q=80\"}]"
+    },
+    "Site Template:flooring-site": {
+      "name": "flooring-site",
+      "title": "Flooring Contractor",
+      "sector": "Flooring",
+      "published": 1,
+      "order": 3,
+      "summary": "A site for hardwood and flooring contractors with a detailed quote calculator built on your own price list.",
+      "features": "Room-by-room quote calculator with live totals\nPrice list of works, steps and add-ons you control\nCustomer quotes with printable format\nGallery, projects, wood guide and FAQ",
+      "demo_url": "https://flooring-demo.loopar.build",
+      "cover_image": "[{\"name\": \"photo-1769736436809-eab3de70b175.jpg\", \"type\": \"image\", \"src\": \"https://images.unsplash.com/photo-1769736436809-eab3de70b175?auto=format&fit=crop&w=1200&q=80\"}]"
     }
   },
   "postInstaller": {
@@ -316,8 +385,10 @@
     "Entity:Subscription": "link",
     "Entity:Webhook Event": "link",
     "Entity:Mail Hosting Settings": "link",
+    "Entity:Mail Policy": "link",
     "Entity:Mail Domain": "link",
     "Entity:Mailbox": "link",
-    "Entity:Mail Alias": "link"
+    "Entity:Mail Alias": "link",
+    "Entity:Site Template": "link"
   }
 }

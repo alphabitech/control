@@ -9,12 +9,13 @@
 import { loopar } from 'loopar';
 import { createMigadu } from './migadu.js';
 import { createCloudflare, applyPlan } from './cloudflare.js';
-import { planDns, describePlan, normName } from './dns-plan.js';
+import { planDns, describePlan, normName, policyFromValues } from './dns-plan.js';
 
 export const SETTINGS = 'Mail Hosting Settings';
 export const DOMAIN = 'Mail Domain';
 export const MAILBOX = 'Mailbox';
 export const ALIAS = 'Mail Alias';
+export const POLICY = 'Mail Policy';
 
 /** Throws a user-facing validation error. */
 export const fail = (message) => loopar.throw({ code: 400, title: 'Mail', message });
@@ -71,8 +72,7 @@ export async function settings() {
     migadu_user: doc?.migadu_user || '',
     migadu_api_key: doc?.migadu_api_key || '',
     cloudflare_api_token: doc?.cloudflare_api_token || '',
-    dmarc_policy: doc?.dmarc_policy || 'quarantine',
-    dmarc_report_email: doc?.dmarc_report_email || '',
+    default_mail_policy: doc?.default_mail_policy || '',
     webmail_url: doc?.webmail_url || DEFAULT_WEBMAIL_URL,
     default_mailbox_limit: Math.max(0, parseInt(doc?.default_mailbox_limit, 10) || 0),
   };
@@ -142,10 +142,24 @@ export async function remoteDomainStatus(domain) {
  * Writes the DNS records Migadu needs into the domain's Cloudflare zone.
  * Returns { zone, ops, warnings, errors, report }.
  */
+/**
+ * Mail policy that governs a domain's SPF/DMARC: the domain's own, else the
+ * default in Mail Hosting Settings. Null = conservative (merge SPF, keep a
+ * valid DMARC). Returns { name, policy }.
+ */
+export async function domainPolicy(domain) {
+  const own = (await loopar.db.getAll(DOMAIN, ['mail_policy'], { name: domain }))[0]?.mail_policy;
+  const name = own || (await settings()).default_mail_policy;
+  if (!name) return { name: null, policy: null };
+  const row = (await loopar.db.getAll(POLICY, ['*'], { name }))[0];
+  if (!row) fail(`Mail Policy "${name}" does not exist.`);
+  return { name, policy: policyFromValues(row) };
+}
+
 export async function configureDns(domain, { dryRun = false } = {}) {
   const api = await migadu();
   const cf = await cloudflare();
-  const s = await settings();
+  const { name: policyName, policy } = await domainPolicy(domain);
 
   const wanted = await remote(() => api.records(domain));
   const zone = await remote(() => cf.findZone(domain));
@@ -159,12 +173,13 @@ export async function configureDns(domain, { dryRun = false } = {}) {
     domain,
     migadu: wanted,
     existing,
-    dmarc: { policy: s.dmarc_policy, rua: s.dmarc_report_email },
+    policy,
   });
 
   const ops = dryRun ? plan.ops : await applyPlan(cf, zone.id, plan.ops);
   const errors = ops.filter((o) => o.error).map((o) => `${o.op} ${o.type} ${o.name}: ${o.error}`);
-  const header = `${dryRun ? 'DNS plan' : 'DNS applied'} for ${domain} (Cloudflare zone ${zone.name}) — ${now()}`;
+  const header = `${dryRun ? 'DNS plan' : 'DNS applied'} for ${domain} (Cloudflare zone ${zone.name}, `
+    + `${policyName ? `policy ${policyName}` : 'no mail policy'}) — ${now()}`;
   const report = `${header}\n\n${describePlan({ ops, warnings: plan.warnings })}`;
   return { zone, ops, warnings: plan.warnings, errors, report };
 }

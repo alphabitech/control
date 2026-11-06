@@ -256,6 +256,38 @@ export default class SignupController extends BaseController {
   }
 
   /**
+   * GET /api/signup/templates — published website templates for the
+   * Templates page (and, later, the template picker in checkout).
+   */
+  async publicActionTemplates() {
+    const rows = await loopar.db.getAll('Site Template', {
+      fields: ['name', 'title', 'sector', 'summary', 'features', 'demo_url', 'cover_image', 'order'],
+      filter: { published: 1 },
+    });
+
+    const cover = (value) => {
+      const files = loopar.utils.JSONparse(value, []);
+      const file = Array.isArray(files) ? files[0] : files;
+      return file?.src || null;
+    };
+
+    const templates = rows
+      .map(r => ({
+        name: r.name,
+        title: r.title,
+        sector: r.sector || null,
+        summary: r.summary || '',
+        features: String(r.features || '').split('\n').map(f => f.trim()).filter(Boolean),
+        demo_url: r.demo_url || null,
+        cover: cover(r.cover_image),
+        order: Number(r.order) || 0,
+      }))
+      .sort((a, b) => a.order - b.order || String(a.title).localeCompare(String(b.title)));
+
+    return { status: 200, success: true, templates };
+  }
+
+  /**
    * POST /api/signup/create
    */
   async publicActionCreate() {
@@ -264,6 +296,7 @@ export default class SignupController extends BaseController {
     const email = String(data.email || '').trim().toLowerCase();
     const workspaceName = String(data.workspace_name || '').trim().toLowerCase();
     const rawAmount = data.amount;
+    const templateName = String(data.template || '').trim();
 
     if (!priceId || !email) {
       return { status: 400, success: false, message: 'price_id and email are required' };
@@ -332,6 +365,12 @@ export default class SignupController extends BaseController {
       if (fs.existsSync(path.join(process.cwd(), 'sites', workspaceName))) {
         return { status: 400, success: false, message: 'That workspace name is already taken' };
       }
+      if (templateName) {
+        const published = await loopar.db.getAll('Site Template', { fields: ['name'], filter: { name: templateName, published: 1 } });
+        if (!published.length) {
+          return { status: 400, success: false, message: 'Unknown website template' };
+        }
+      }
     }
 
     //Customer by email
@@ -367,6 +406,7 @@ export default class SignupController extends BaseController {
       subscription.status = 'pending';
       if (isCloud) {
         subscription.tenant_name = workspaceName;
+        if (templateName) subscription.template = templateName;
       }
       await subscription.save();
     } catch (err) {
@@ -405,6 +445,7 @@ export default class SignupController extends BaseController {
       price_id:        priceId,
       category,
       ...(isCloud ? { tenant_name: workspaceName } : {}),
+      ...(isCloud && templateName ? { template: templateName } : {}),
     };
 
     const sessionParams = {

@@ -1,0 +1,19 @@
+{
+  "name": "Site Template",
+  "module": "subscriptions",
+  "default_list_view": "List",
+  "is_single": 0,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 1,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 0,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "name,title,sector",
+  "title_fields": "title",
+  "resources": [],
+  "doc_structure": "[{\"node\":\"st_row_identity\",\"element\":\"row\",\"data\":{\"layout\":\"[50,50]\"},\"elements\":[{\"node\":\"st_row_identity_c0\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"name\",\"element\":\"input\",\"data\":{\"name\":\"name\",\"label\":\"Template app\",\"type\":\"VARCHAR\",\"required\":1,\"unique\":1,\"set_only_time\":1,\"in_list_view\":1,\"searchable\":1,\"description\":\"Template app name (e.g. construction-site).\"}}]},{\"node\":\"st_row_identity_c1\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"title\",\"element\":\"input\",\"data\":{\"name\":\"title\",\"label\":\"Title\",\"required\":1,\"in_list_view\":1,\"searchable\":1}},{\"node\":\"sector\",\"element\":\"input\",\"data\":{\"name\":\"sector\",\"label\":\"Sector\",\"in_list_view\":1,\"searchable\":1}}]}]},{\"node\":\"st_row_state\",\"element\":\"row\",\"data\":{\"layout\":\"[50,50]\"},\"elements\":[{\"node\":\"st_row_state_c0\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"published\",\"element\":\"switch\",\"data\":{\"name\":\"published\",\"label\":\"Published\",\"in_list_view\":1}}]},{\"node\":\"st_row_state_c1\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"order\",\"element\":\"input\",\"data\":{\"name\":\"order\",\"label\":\"Order\",\"format\":\"int\"}}]}]},{\"node\":\"st_row_content\",\"element\":\"row\",\"data\":{\"layout\":\"[100]\"},\"elements\":[{\"node\":\"st_row_content_c0\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"summary\",\"element\":\"textarea\",\"data\":{\"name\":\"summary\",\"label\":\"Summary\"}},{\"node\":\"features\",\"element\":\"textarea\",\"data\":{\"name\":\"features\",\"label\":\"Features\",\"description\":\"One feature per line.\"}},{\"node\":\"demo_url\",\"element\":\"input\",\"data\":{\"name\":\"demo_url\",\"label\":\"Live demo URL\",\"description\":\"Public site of the demo (only the website, neutral content).\"}},{\"node\":\"cover_image\",\"element\":\"image_input\",\"data\":{\"name\":\"cover_image\",\"label\":\"Cover image\",\"accept\":\"image/*\"}}]}]}]",
+  "__ENTITY__": "Entity"
+}

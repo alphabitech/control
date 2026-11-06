@@ -359,6 +359,9 @@ export async function provisionTenant(subscriptionName) {
         company:          tenantName,
         admin_password:   '',
         confirm_password: '',
+        // Website template chosen at checkout: the tenant creates its site
+        // from it (apps/<tenant>-site) and makes it the active website.
+        ...(subscription.template ? { template: subscription.template } : {}),
       },
     });
 
