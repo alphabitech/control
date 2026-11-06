@@ -26,20 +26,35 @@ export default class MailDomainController extends BaseController {
     return await this.success(changes ? `${changes} change(s) needed — see the DNS report.` : 'DNS already has every record Migadu needs.', { refresh: 'soft' });
   }
 
+  /**
+   * Writes the records, then (when nothing failed) asks Migadu to activate
+   * right away: one click usually finishes the setup. When Migadu does not
+   * see the records yet, "Check & activate" retries later.
+   */
   async actionConfigureDns() {
     const res = await this.#dns(false);
     const changes = res.ops.filter((o) => o.op !== 'keep' && !o.error).length;
     if (res.errors.length) {
       return await this.success(`${changes} change(s) applied, ${res.errors.length} failed — see the DNS report.`, { refresh: 'soft' });
     }
-    return await this.success(
-      changes ? `${changes} DNS change(s) applied. Run "Check & activate" in a few minutes.` : 'DNS already had every record. Run "Check & activate".',
-      { refresh: 'soft' },
-    );
+
+    const doc = await targetDoc(this);
+    await doc.setSystem({ dns_configured_at: now() });
+    const applied = changes ? `${changes} DNS change(s) applied.` : 'DNS already had every record.';
+
+    let check;
+    try {
+      check = await this.#activate(doc);
+    } catch (e) {
+      return await this.success(`${applied} Could not check Migadu (${e.message}). Use "Check & activate" in a few minutes.`, { refresh: 'soft' });
+    }
+    const tail = check.status === 'Active'
+      ? (check.activated ? 'Domain activated in Migadu.' : 'Domain is active.')
+      : 'Migadu does not see the records yet (DNS can take a few minutes): use "Check & activate" later.';
+    return await this.success(`${applied} ${tail}`, { refresh: 'soft' });
   }
 
-  async actionCheckDomain() {
-    const doc = await targetDoc(this);
+  async #activate(doc) {
     const res = await checkAndActivate(doc.name);
     await doc.setSystem({
       status: res.status,
@@ -47,6 +62,12 @@ export default class MailDomainController extends BaseController {
       check_report: res.report,
       last_checked: now(),
     });
+    return res;
+  }
+
+  async actionCheckDomain() {
+    const doc = await targetDoc(this);
+    const res = await this.#activate(doc);
     return await this.success(res.message, { refresh: 'soft' });
   }
 

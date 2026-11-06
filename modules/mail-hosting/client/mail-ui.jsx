@@ -70,7 +70,8 @@ export function ask({ title, message, fields = [] }) {
 
 /**
  * App-bar buttons for record actions.
- * actions: [{ key, label, when?(data), variant?, run(name, data) }]
+ * actions: [{ key, label, when?(data), variant? (string | (data) => string), run(name, data) }]
+ * Buttons appear in the declared order.
  * A button shows only on a saved record and when `when` returns true.
  */
 export function useRecordActions(actions) {
@@ -81,11 +82,12 @@ export function useRecordActions(actions) {
   const data = Document.data || {};
   const visible = Document.isNew ? [] : actions.filter((a) => !a.when || a.when(data));
 
-  useActions(Object.fromEntries(visible.map((a) => [
-    `mail_${a.key}`,
+  // The app bar orders actions by key: the index keeps the declared order.
+  useActions(Object.fromEntries(visible.map((a, i) => [
+    `mail_${String(i).padStart(2, '0')}_${a.key}`,
     <Button
       key={a.key}
-      variant={a.variant || 'secondary'}
+      variant={(typeof a.variant === 'function' ? a.variant(data) : a.variant) || 'secondary'}
       onClick={async (e) => {
         e.preventDefault();
         const D = ref.current;

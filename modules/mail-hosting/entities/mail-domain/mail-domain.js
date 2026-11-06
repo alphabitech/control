@@ -6,7 +6,7 @@ import {
 } from '../../mail-service.js';
 
 /** Maintained by the actions (readonly in the form). */
-const SYSTEM_FIELDS = ['status', 'activated_at', 'cloudflare_zone', 'last_checked', 'dns_report', 'check_report'];
+const SYSTEM_FIELDS = ['status', 'activated_at', 'dns_configured_at', 'cloudflare_zone', 'last_checked', 'dns_report', 'check_report'];
 
 /**
  * A client domain hosted in Migadu. Creating it here creates it in Migadu
