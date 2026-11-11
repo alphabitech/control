@@ -17,7 +17,9 @@ export default function PlanForm() {
   const ref = useRef(Document);
   ref.current = Document;
   const data = Document.data || {};
-  const isTest = !Document.isNew && String(data.name || '').startsWith('test:');
+  const isTest = !Document.isNew && data.mode === 'test';
+  // "test:<id>": a test plan seen from a live site, which never offers it.
+  const isPreview = isTest && String(data.name || '').startsWith('test:');
 
   const toLive = () => loopar.confirm(
     `Publish "${data.plan_name}" to live? It is created in Stripe's live mode with this name, limits, features and price, and can be offered to customers. From then on the live plan is edited on its own.`,
@@ -25,7 +27,7 @@ export default function PlanForm() {
       const D = ref.current;
       const r = await publish(D.name || D.data?.name);
       loopar.notify({ message: `${data.plan_name} is now live.`, type: 'success' });
-      if (r?.published) loopar.navigate(`/desk/Plan/update?name=${encodeURIComponent(r.published)}`);
+      if (r?.published && r?.listed) loopar.navigate(`/desk/Plan/update?name=${encodeURIComponent(r.published)}`);
     },
   );
 
@@ -35,7 +37,7 @@ export default function PlanForm() {
 
   return (
     <FormLayout>
-      {isTest && (
+      {isPreview && (
         <div className="mt-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
           <b>Test mode.</b> This plan lives in Stripe's test mode: customers never see it. Publish it to live when it is ready.
         </div>

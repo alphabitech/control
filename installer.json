@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.54"
+    "version": "0.0.55"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — websites, business email and business tools",
-      "version": "0.0.54",
+      "version": "0.0.55",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -137,14 +137,8 @@
       "copyright": "<div style=\"text-align: center; padding: 20px; border-top: 1px solid rgba(128,128,128,0.3); font-size: 0.9em;\">\n  © 2026 **AlphaBit Technology Inc.** · Powered by [Loopar](https://loopar.build)\n</div>",
       "theme": "{\"theme\":\"custom\",\"darkMode\":\"auto\",\"darkIntensity\":0.15,\"darkCustomColor\":\"#0a0a0a\",\"includeTitles\":true,\"brand\":{\"primary\":\"#4338ca\",\"accent\":\"#06b6d4\",\"background\":\"#f8fafc\",\"foreground\":\"#0f172a\"}}"
     },
-    "Module:stripe": {
-      "name": "stripe",
-      "description": "stripe",
-      "app_name": "control",
-      "in_sidebar": 1
-    },
     "Entity:Stripe Account": {
-      "__root__": "/apps/control/modules/stripe/entities/stripe-account"
+      "__app__": "loopar"
     },
     "Entity:Menu Item": {
       "__app__": "loopar"
@@ -225,7 +219,7 @@
       "__app__": "loopar"
     },
     "Controller Builder:Stripe Webhook": {
-      "__root__": "/apps/control/modules/stripe/controllers/stripe-webhook"
+      "__root__": "/apps/control/modules/subscriptions/controllers/stripe-webhook"
     },
     "Controller Builder:Auth Claim": {
       "__root__": "/apps/control/modules/subscriptions/controllers/auth-claim"
@@ -380,7 +374,6 @@
   },
   "postInstaller": {
     "App:control": "link",
-    "Entity:Stripe Account": "link",
     "Entity:Claim Token": "link",
     "Entity:Plan": "link",
     "Entity:Portal Link": "link",

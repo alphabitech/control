@@ -20,8 +20,8 @@ async function clientOf(mode) {
   const stripe = await stripeClientFor(mode);
   if (!stripe) {
     loopar.throw(mode === 'test'
-      ? 'Stripe test mode is not configured: add the Test secret key in Stripe Account.'
-      : 'Stripe live mode is not available on this account.');
+      ? 'Stripe test mode is not configured: add a Stripe Account with a test Secret Key.'
+      : 'No live Stripe Account on this site: add one to publish plans (a restricted key that can write products and prices is enough).');
   }
   return stripe;
 }
@@ -33,10 +33,12 @@ const priceData = (price) => ({ unit_amount: price.unit_amount, currency: price.
  * Price); listing, opening, saving and deleting talk to Stripe directly, so
  * the desk and Stripe can't drift apart.
  *
- * A live account can also keep plans in Stripe's test mode (record names
- * "test:<id>"): they are prepared and reviewed there, never offered to
- * customers (the pricing page and checkout use the live key only), and
- * `publish()` copies one to live.
+ * The site offers the plans of its Billing account's mode. A test plan is
+ * copied to live with `publish()`, from either kind of site:
+ *  - a test site (Billing = test) that also has the live account registered,
+ *    only as the place to publish to;
+ *  - a live site that also has a test account: its test plans are listed as
+ *    "test:<id>" and never offered to customers.
  */
 export default class Plan extends BaseDocument {
   #product = null;
@@ -104,6 +106,10 @@ export default class Plan extends BaseDocument {
 
     if (!this.#product) {
       const mode = this.mode === 'test' ? 'test' : (this.mode === 'live' ? 'live' : activeMode);
+      // A test site lists test plans only: a live plan is made by publishing one.
+      if (activeMode === 'test' && mode === 'live') {
+        loopar.throw('This site bills in test mode: create the plan in test and use "Publish to live".');
+      }
       const stripe = await clientOf(mode);
       if (!ID_RE.test(String(this.name || ''))) loopar.throw('ID: use letters, numbers, dashes or underscores (e.g. cloud-pro).');
       if (!price) loopar.throw('Price is required for a new plan.');
@@ -133,11 +139,10 @@ export default class Plan extends BaseDocument {
   /**
    * Copies this test plan to live: same id, name, category, limits, features
    * and price. Refused when live already has that id — from then on they are
-   * two independent plans. Returns the live plan's record name.
+   * two independent plans. Returns the live plan's id.
    */
   async publish() {
     if (!this.#product || this.#mode !== 'test') loopar.throw('Only a plan in test mode can be published to live.');
-    if (await stripeMode() !== 'live') loopar.throw('This account runs in test mode: there is no live mode to publish to.');
 
     const values = planFromProduct(this.#product, this.#price, { mode: 'test', activeMode: 'live' });
     const product = productParams(values);

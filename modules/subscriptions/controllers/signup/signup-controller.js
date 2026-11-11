@@ -16,6 +16,7 @@ import {
 import {RESERVED_NAMES, SUBDOMAIN_RE, EMAIL_RE, PLANS_CACHE_TTL_MS, shapePrice, sortByOrder} from "./helper.js"
 import { grantPortalAccessQuietly } from '../../account-service.js';
 import { stripeIdOf, setStripeId } from '../../stripe-customer.js';
+import { billingAccount } from '../../../../../loopar/modules/stripe/stripe-accounts.js';
 
 let plansCache = { data: null, fetchedAt: 0 };
 
@@ -111,9 +112,7 @@ export default class SignupController extends BaseController {
       return this._sendPortalErrorHtml('customer_missing');
     }
 
-    const account = await loopar.getDocument(
-      'Stripe Account', null, null, { ifNotFound: null }
-    );
+    const account = await billingAccount();
     if (!account?.secret_key) {
       console.error('[signup/openPortal] Stripe Account is not configured');
       return this._sendPortalErrorHtml('stripe_misconfigured');
@@ -224,7 +223,7 @@ export default class SignupController extends BaseController {
       allPlans = plansCache.data;
       cached = true;
     } else {
-      const account = await loopar.getDocument('Stripe Account');
+      const account = await billingAccount();
       const secretKey = account?.secret_key;
       if (!secretKey) {
         console.error('[signup] Stripe Account is not configured');
@@ -308,7 +307,7 @@ export default class SignupController extends BaseController {
       return { status: 400, success: false, message: 'Invalid email' };
     }
 
-    const account = await loopar.getDocument('Stripe Account');
+    const account = await billingAccount();
     const secretKey = account?.secret_key;
     if (!secretKey) {
       console.error('[signup] Stripe Account is not configured');
@@ -658,7 +657,7 @@ export default class SignupController extends BaseController {
     }
 
     // ---- Stripe ready? --------------------------------------------------
-    const account = await loopar.getDocument('Stripe Account');
+    const account = await billingAccount();
     const secretKey = account?.secret_key;
     if (!secretKey) {
       return { status: 500, success: false, message: 'Stripe is not configured' };
@@ -1097,7 +1096,7 @@ export default class SignupController extends BaseController {
       };
     }
 
-    const account = await loopar.getDocument('Stripe Account');
+    const account = await billingAccount();
     const secretKey = account?.secret_key;
     if (!secretKey) {
       return { status: 500, success: false, message: 'Stripe is not configured' };

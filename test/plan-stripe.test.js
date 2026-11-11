@@ -60,7 +60,7 @@ test("limits: users travel in the product metadata", () => {
 });
 
 test("the key decides the mode", async () => {
-  const { keyMode } = await import("../modules/stripe/stripe-keys.js");
+  const { keyMode } = await import("../../loopar/modules/stripe/stripe-accounts.js");
   assert.equal(keyMode("sk_live_abc"), "live");
   assert.equal(keyMode("sk_test_abc"), "test");
   assert.equal(keyMode("rk_live_abc"), "live");

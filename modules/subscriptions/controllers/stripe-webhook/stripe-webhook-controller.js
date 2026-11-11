@@ -2,9 +2,10 @@
 
 import { BaseController, loopar, tenant } from 'loopar';
 import Stripe from 'stripe';
-import { provisionTenant } from '../../../subscriptions/provisioning.js';
-import { grantPortalAccessQuietly, stripeClient, applyPlanLimits } from '../../../subscriptions/account-service.js';
-import { stripeIdOf, setStripeId } from '../../../subscriptions/stripe-customer.js';
+import { billingAccount, verifyWebhook } from '../../../../../loopar/modules/stripe/stripe-accounts.js';
+import { provisionTenant } from '../../provisioning.js';
+import { grantPortalAccessQuietly, stripeClient, applyPlanLimits } from '../../account-service.js';
+import { stripeIdOf, setStripeId } from '../../stripe-customer.js';
 
 /**
  * Hydrate a Tenant Manager doc for the given tenant name, or null if it
@@ -26,18 +27,6 @@ async function getTenantDoc(tenantName) {
  */
 export default class StripeWebhookController extends BaseController {
   async publicActionReceive() {
-    // Secret key + webhook signing secret live on the single `Stripe Account`
-    // doc as password fields: the server-side getter returns the real values,
-    // while the desk UI only ever sees the masked placeholder.
-    const account = await loopar.getDocument('Stripe Account');
-    const secretKey = account?.secret_key;
-    const webhookSecret = account?.webhook_secret;
-
-    if (!secretKey || !webhookSecret) {
-      console.error('[stripe-webhook] Stripe Account is not configured (secret_key / webhook_secret missing)');
-      return { status: 500, success: false, message: 'Stripe is not configured' };
-    }
-
     const signature = this.req?.headers?.['stripe-signature'];
     const rawBody = this.req?.rawBody;
 
@@ -45,14 +34,22 @@ export default class StripeWebhookController extends BaseController {
       return { status: 400, success: false, message: 'Missing Stripe signature or raw body' };
     }
 
-    let event;
-    try {
-      const stripe = new Stripe(secretKey);
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    } catch (err) {
-      console.error('[stripe-webhook] signature verification failed:', err.message);
+    // Each Stripe Account has its own signing secret: the one that verifies
+    // the delivery tells which account (and mode) sent it.
+    const verified = await verifyWebhook(rawBody, signature);
+    if (!verified) {
+      console.error('[stripe-webhook] signature verification failed: no Stripe Account signed this delivery');
       return { status: 400, success: false, message: 'Signature verification failed' };
     }
+
+    // Authentic, but from an account that is not the Billing one (e.g. test
+    // deliveries on a live site): acknowledged and left alone.
+    if (!verified.billing) {
+      console.log(`[stripe-webhook] ${verified.event.type} from "${verified.account.name}" (not the Billing account): ignored`);
+      return { status: 200, success: true, message: 'ignored: not the billing account' };
+    }
+
+    const event = verified.event;
 
     // Idempotency — Stripe retries deliveries and may send duplicates. We
     // skip ONLY if a previous run already finished processing this event
@@ -244,7 +241,7 @@ export default class StripeWebhookController extends BaseController {
     }
 
     // Fetch customer email + create portal session — all from Stripe.
-    const account = await loopar.getDocument('Stripe Account');
+    const account = await billingAccount();
     const stripeClient = new Stripe(account?.secret_key);
     let customerEmail = null;
     let portalUrl = null;
@@ -303,7 +300,7 @@ export default class StripeWebhookController extends BaseController {
 
     // Fetch the Sub to read its metadata.tenant_name (invoices don't carry
     // the subscription's metadata directly).
-    const account = await loopar.getDocument('Stripe Account');
+    const account = await billingAccount();
     const stripeClient = new Stripe(account?.secret_key);
     let tenantName = null;
     try {

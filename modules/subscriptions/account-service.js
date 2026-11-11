@@ -15,8 +15,7 @@
 
 import { loopar, tenant, requirePortalIdentity, Op, tenantUserUsage, getTenantInstance } from 'loopar';
 import { ensureCustomerContact, grantPortalAccess as grantContactAccess, customerContacts } from '../../../loopar/modules/crm/portal-access.js';
-import Stripe from 'stripe';
-import { keyMode } from '../stripe/stripe-keys.js';
+import { stripeClient as billingClient, stripeMode, stripeClientFor } from '../../../loopar/modules/stripe/stripe-accounts.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { controlPlaneBaseUrlFromReq } from './portal-link-issuer.js';
@@ -57,37 +56,14 @@ export const pageUrl = (req, query = '') => `${baseUrl(req)}${PAGE_PATH}${query 
 /* Stripe                                                              */
 /* ------------------------------------------------------------------ */
 
+/** Stripe client of the Billing account (see loopar's Stripe Account). */
 export async function stripeClient({ required = true } = {}) {
-  const account = await loopar.getDocument('Stripe Account', null, null, { ifNotFound: null });
-  if (!account?.secret_key) {
-    if (required) fail('Billing is not available right now. Please try again later.', 503);
-    return null;
-  }
-  return new Stripe(account.secret_key);
+  const client = await billingClient();
+  if (!client && required) fail('Billing is not available right now. Please try again later.', 503);
+  return client;
 }
 
-/** The key decides: the Secret Key's mode; the stored label only when the key doesn't tell. */
-const activeModeOf = (account) => keyMode(account?.secret_key) || (account?.mode === 'live' ? 'live' : 'test');
-
-/** The mode billing runs in ('live' | 'test'): the mode of the Secret Key. */
-export async function stripeMode() {
-  const account = await loopar.getDocument('Stripe Account', null, null, { ifNotFound: null });
-  return activeModeOf(account);
-}
-
-/**
- * Stripe client of a given mode, for preparing Plans. The active mode uses the
- * account's key; 'test' on a live account uses its Test secret key. null when
- * that mode has no key here (a test account never reaches live).
- */
-export async function stripeClientFor(mode) {
-  const account = await loopar.getDocument('Stripe Account', null, null, { ifNotFound: null });
-  const active = activeModeOf(account);
-  const key = mode === active ? account?.secret_key : (mode === 'test' ? account?.test_secret_key : null);
-  // Never hand out a client of another mode than the one asked for.
-  if (!key || (keyMode(key) && keyMode(key) !== mode)) return null;
-  return new Stripe(key);
-}
+export { stripeMode, stripeClientFor };
 
 const productCache = new Map();
 
