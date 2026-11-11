@@ -19,6 +19,9 @@ import { stripeIdOf, setStripeId } from '../../stripe-customer.js';
 
 let plansCache = { data: null, fetchedAt: 0 };
 
+/** Drops the cached plans (a Plan was saved or archived). */
+export const invalidatePlansCache = () => { plansCache = { data: null, fetchedAt: 0 }; };
+
 export default class SignupController extends BaseController {
 
   /**
@@ -482,7 +485,7 @@ export default class SignupController extends BaseController {
    * POST /api/Signup/cleanupCanceled (authenticated — operator only)
    *
    * Hard-deletes tenants whose Subscription was canceled more than
-   * CLOUD_DELETE_AFTER_DAYS ago. Designed to be triggered from a daily
+   * Cloud Settings' days ago (default 5). Designed to be triggered from a daily
    * OS cron. Idempotent. Returns count of tenants removed.
    *
    * Example cron entry (every day at 03:00 local time):

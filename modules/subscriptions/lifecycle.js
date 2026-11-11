@@ -1,6 +1,7 @@
 'use strict';
 
 import { loopar } from 'loopar';
+import { syncSubscriptions } from './subscription-sync.js';
 import fs from 'fs';
 import path from 'pathe';
 
@@ -14,26 +15,82 @@ import path from 'pathe';
  * exists only for the cron-style cleanup endpoint.
  */
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DEFAULT_GRACE_DAYS = 5;
+
+// Stored datetimes without a zone are UTC (what the Stripe sync writes).
+const instant = (v) => {
+  if (!v) return NaN;
+  if (typeof v === 'string' && /^\d{4}-\d\d-\d\d[ T]\d\d:\d\d(:\d\d(\.\d+)?)?$/.test(v)) {
+    return new Date(`${v.replace(' ', 'T')}Z`).getTime();
+  }
+  return new Date(v).getTime();
+};
+
 /**
- * Hard-delete tenant directories whose Subscription was canceled more than
- * the grace period ago (Subscription.delete_after <= now). Returns the
- * number of tenants removed. Idempotent and safe to call repeatedly.
+ * Tears a workspace down. Preferred path: the Tenant Manager doc does it
+ * (pm2 stop+delete, caddy unregister, rm sites/<name>/). When the tenant
+ * entity is gone but the directory is still there, remove it directly.
+ * Returns true when the directory no longer exists.
+ */
+async function removeTenantFiles(tenantName) {
+  const sitePath = path.join(process.cwd(), 'sites', tenantName);
+  const doc = await loopar.getDocument('Tenant Manager', tenantName, null, { ifNotFound: null });
+  if (doc?.name) {
+    try {
+      await doc.destroy();
+      return !fs.existsSync(sitePath);
+    } catch (err) {
+      console.error(`[lifecycle/cleanup] destroy ${tenantName}:`, err.message);
+      return false;
+    }
+  }
+  if (!fs.existsSync(sitePath)) return false;
+  try {
+    fs.rmSync(sitePath, { recursive: true, force: true });
+    console.log(`[lifecycle/cleanup] removed sites/${tenantName}`);
+    return true;
+  } catch (err) {
+    console.error(`[lifecycle/cleanup] rm ${sitePath}:`, err.message);
+    return false;
+  }
+}
+
+/** Cloud Settings with their defaults (also when the record was never saved). */
+export async function cloudSettings() {
+  let doc = null;
+  try { doc = await loopar.getDocument('Cloud Settings'); } catch (_) { /* not installed yet */ }
+  const days = Number(doc?.deletion_grace_days);
+  return {
+    graceDays: Number.isInteger(days) && days >= 1 ? days : DEFAULT_GRACE_DAYS,
+    // Only an explicit "off" stops deletions.
+    autoDelete: ![0, '0', false, 'false'].includes(doc?.auto_delete_canceled),
+  };
+}
+
+/**
+ * Hard-delete the workspaces whose Subscription ended more than Cloud
+ * Settings' grace period ago (ended_at, or canceled_at, + days). Returns the number
+ * of tenants removed. Idempotent and safe to call repeatedly.
+ *
+ * The dates come from Stripe (synced first), never from a stored deadline:
+ * a canceled row without them is skipped, not deleted, and a
+ * change of the grace period applies to every workspace not deleted yet.
+ * `delete_after` is kept only to show the planned date.
  *
  * Intended trigger: a daily OS cron calling
  * `POST /api/Signup/cleanupCanceled`.
  */
-export async function cleanupCanceledTenants() {
-  const now = new Date().toISOString();
+export async function cleanupCanceledTenants({ now = Date.now(), removeTenant = removeTenantFiles } = {}) {
+  const { graceDays, autoDelete } = await cloudSettings();
+  await syncSubscriptions({ force: true });
 
   let rows;
   try {
     rows = await loopar.db.getAll(
       'Subscription',
-      ['name', 'tenant_name', 'delete_after'],
-      {
-        '=':  { status: 'canceled' },
-        '<=': { delete_after: now },
-      }
+      ['name', 'tenant_name', 'canceled_at', 'ended_at', 'delete_after', 'provisioning_step'],
+      { status: 'canceled' }
     );
   } catch (err) {
     console.error('[lifecycle/cleanup] could not list canceled subs:', err.message);
@@ -42,42 +99,36 @@ export async function cleanupCanceledTenants() {
 
   let removed = 0;
   for (const row of rows || []) {
-    if (!row.tenant_name) continue;
+    if (!row.tenant_name || row.provisioning_step === 'deleted') continue;
+    if (row.tenant_name === loopar.tenantId) continue; // never the control plane itself
 
-    // Preferred path: hydrate the Tenant Manager doc and let it tear itself
-    // down (pm2 stop+delete, caddy unregister, rm sites/<name>/). The doc is
-    // null when the tenant entity is gone but the on-disk directory might
-    // still exist — fall back to a direct rmSync for that case.
-    const doc = await loopar.getDocument(
-      'Tenant Manager', row.tenant_name, null, { ifNotFound: null }
-    );
-    const sitePath = path.join(process.cwd(), 'sites', row.tenant_name);
-    let didRemove = false;
-    if (doc?.name) {
-      try {
-        await doc.destroy();
-        didRemove = !fs.existsSync(sitePath);
-      } catch (err) {
-        console.error(`[lifecycle/cleanup] destroy ${row.tenant_name}:`, err.message);
-      }
-    } else if (fs.existsSync(sitePath)) {
-      try {
-        fs.rmSync(sitePath, { recursive: true, force: true });
-        didRemove = true;
-        console.log(`[lifecycle/cleanup] removed sites/${row.tenant_name}`);
-      } catch (err) {
-        console.error(`[lifecycle/cleanup] rm ${sitePath}:`, err.message);
-      }
+    // Counted from when the service really ended: a "cancel at period end"
+    // has canceled_at at the request, ended_at at the end of the paid period.
+    const endedAt = Math.max(instant(row.ended_at) || 0, instant(row.canceled_at) || 0);
+    if (!endedAt) {
+      console.warn(`[lifecycle/cleanup] ${row.name} is canceled but has no end date — skipped`);
+      continue;
     }
-    if (didRemove) removed++;
+    const deleteAt = endedAt + graceDays * DAY_MS;
+    if (instant(row.delete_after) !== deleteAt) {
+      try {
+        await loopar.db.updateRow('Subscription', row.name, { delete_after: new Date(deleteAt).toISOString() });
+      } catch (_) { /* display only */ }
+    }
+    if (!autoDelete || deleteAt > now) continue;
 
-    // Stamp the Subscription so we don't keep re-trying once the dir is gone.
-    try {
-      await loopar.db.updateRow('Subscription', row.name, {
-        tenant_provisioned: 0,
-        provisioning_step:  'deleted',
-      });
-    } catch (_) { /* non-fatal */ }
+    if (await removeTenant(row.tenant_name)) removed++;
+
+    // Stamp the Subscription once its workspace is gone, so it isn't retried.
+    // A failed removal stays unstamped and is tried again on the next run.
+    if (!fs.existsSync(path.join(process.cwd(), 'sites', row.tenant_name))) {
+      try {
+        await loopar.db.updateRow('Subscription', row.name, {
+          tenant_provisioned: 0,
+          provisioning_step:  'deleted',
+        });
+      } catch (_) { /* non-fatal */ }
+    }
   }
 
   return removed;

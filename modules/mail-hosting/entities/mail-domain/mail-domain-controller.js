@@ -2,11 +2,11 @@
 
 import { BaseController } from 'loopar';
 import {
-  fail, now, targetDoc, configureDns, checkAndActivate, importDomainContent, importAll,
+  fail, now, targetDoc, configureDns, checkAndActivate, importAll,
 } from '../../mail-service.js';
 
 export default class MailDomainController extends BaseController {
-  static postOnlyActions = ['previewDns', 'configureDns', 'checkDomain', 'syncContent', 'importAll'];
+  static postOnlyActions = ['previewDns', 'configureDns', 'checkDomain', 'importAll'];
 
   constructor(props) {
     super(props);
@@ -69,18 +69,6 @@ export default class MailDomainController extends BaseController {
     const doc = await targetDoc(this);
     const res = await this.#activate(doc);
     return await this.success(res.message, { refresh: 'soft' });
-  }
-
-  async actionSyncContent() {
-    const doc = await targetDoc(this);
-    const c = await importDomainContent(doc.name);
-    const parts = [
-      `Mailboxes: ${c.mailboxes.created} new, ${c.mailboxes.updated} updated.`,
-      `Aliases: ${c.aliases.created} new, ${c.aliases.updated} updated.`,
-    ];
-    if (c.localOnly.length) parts.push(`Only in Loopar (not in Migadu): ${c.localOnly.join(', ')}.`);
-    if (c.failed.length) parts.push(`Could not import: ${c.failed.join('; ')}.`);
-    return await this.success(parts.join(' '), { refresh: 'soft' });
   }
 
   async actionImportAll() {

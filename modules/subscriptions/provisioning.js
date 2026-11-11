@@ -65,7 +65,9 @@ export async function runProvisioningRetrySweep() {
         // would be picked up by their own lifecycle handlers.
         status: { [Op.in]: ['active', 'trialing'] },
         // Overdue: retry_after is set AND <= now.
-        provisioning_retry_after: { [Op.lte]: new Date().toISOString() },
+        // date_time is stored as local "yyyy-MM-dd HH:mm:ss": an ISO string
+        // compares wrong as text (' ' < 'T' makes same-day retries fire early).
+        provisioning_retry_after: { [Op.lte]: loopar.dateUtils.getDateTime(new Date(), 'DB') },
       }
     );
   } catch (err) {

@@ -1,0 +1,20 @@
+{
+  "name": "Cloud Settings",
+  "module": "subscriptions",
+  "default_list_view": "List",
+  "is_single": 1,
+  "is_static": 0,
+  "is_virtual": 0,
+  "include_in_installer": 0,
+  "is_child": 0,
+  "is_builder": 0,
+  "enable_history": 1,
+  "enable_comments": 0,
+  "require_login_to_comment": 0,
+  "search_fields": "",
+  "title_fields": "",
+  "naming_series": "",
+  "resources": [],
+  "__ENTITY__": "Entity",
+  "doc_structure": "[{\"node\":\"cls_01\",\"element\":\"panel\",\"data\":{\"label\":\"Canceled workspaces\",\"title\":\"Canceled workspaces\",\"variant\":\"solid\",\"rounded\":\"lg\",\"padding\":\"lg\",\"bg_color\":\"card\",\"bg_opacity\":\"100\",\"border_color\":\"border\",\"border_opacity\":\"100\",\"border_width\":\"1\",\"glow_color\":\"none\",\"backdrop_blur\":false,\"hoverable\":false,\"focusable\":false},\"elements\":[{\"node\":\"cls_02\",\"element\":\"row\",\"data\":{\"layout\":\"[50,50]\"},\"elements\":[{\"node\":\"cls_03\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"cls_04\",\"element\":\"input\",\"data\":{\"name\":\"deletion_grace_days\",\"label\":\"Days before deleting\",\"type\":\"number\",\"default_value\":5,\"required\":1,\"description\":\"A canceled workspace is stopped at once and deleted for good this many days after the cancellation. Changing it applies to every canceled workspace not deleted yet.\"}}]},{\"node\":\"cls_05\",\"element\":\"col\",\"data\":{},\"elements\":[{\"node\":\"cls_06\",\"element\":\"switch\",\"data\":{\"name\":\"auto_delete_canceled\",\"label\":\"Delete canceled workspaces\",\"default_value\":1,\"description\":\"Off: the cleanup deletes nothing (canceled workspaces stay stopped).\"}}]}]}]}]"
+}

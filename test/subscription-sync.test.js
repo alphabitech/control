@@ -15,6 +15,7 @@ test("stripe fields: status, period end from the item, cancel date, price", () =
     status: "canceled",
     current_period_end: new Date(1781179667 * 1000).toISOString(),
     canceled_at: new Date(1780574867 * 1000).toISOString(),
+    ended_at: null,
     stripe_price_id: "price_1",
   });
 });

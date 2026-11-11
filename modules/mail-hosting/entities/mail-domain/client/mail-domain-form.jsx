@@ -89,10 +89,6 @@ export default function MailDomainForm() {
       variant: (d) => (nextStep(d) === 'check' ? 'default' : 'secondary'),
       run: (name) => call('Mail Domain', 'checkDomain', { name }),
     },
-    {
-      key: 'sync', label: 'Sync mailboxes',
-      run: (name) => call('Mail Domain', 'syncContent', { name }),
-    },
   ]);
   return <FormLayout slots={SLOTS} />;
 }

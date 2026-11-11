@@ -209,6 +209,12 @@ function Sites({ sites }) {
             {s.status !== 'active' && (
               <p className="text-xs text-muted-foreground">This website is offline. Check the plan above, or contact support.</p>
             )}
+            {s.users?.limit ? (
+              <p className="text-xs text-muted-foreground">
+                {s.users.used != null ? `${s.users.used} of ${s.users.limit} users` : `${s.users.limit} users included`}
+                {s.users.used != null && s.users.used >= s.users.limit ? ' — upgrade your plan to add more.' : ''}
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" asChild>
                 <a href={s.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1 h-4 w-4" /> Open website</a>
@@ -354,6 +360,7 @@ function Domain({ domain, reload }) {
         </Button>
       </div>
       {domain.blocked && <p className="text-xs text-muted-foreground">{domain.blocked}</p>}
+      {domain.mail_error && <p className="text-xs text-destructive">{domain.mail_error}</p>}
 
       {!domain.mailboxes.length && <Empty>No mailboxes yet.</Empty>}
       <ul className="divide-y divide-border">

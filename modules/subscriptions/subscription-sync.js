@@ -11,10 +11,10 @@
  */
 
 import { loopar, Op } from 'loopar';
-import { stripeClient } from './account-service.js';
+import { stripeClient, applyPlanLimits } from './account-service.js';
 
 const SYNC_TTL_MS = 60 * 1000;
-const FIELDS = ['name', 'stripe_subscription_id', 'status', 'current_period_end', 'canceled_at', 'stripe_price_id'];
+const FIELDS = ['name', 'stripe_subscription_id', 'status', 'current_period_end', 'canceled_at', 'ended_at', 'stripe_price_id'];
 
 const lastSync = new Map();   // tenant → ms of the last finished sync
 const inFlight = new Map();   // tenant → Promise of the running sync
@@ -33,6 +33,8 @@ export function stripeFields(sub) {
     // Newer Stripe API versions moved the period onto the items.
     current_period_end: iso(sub.current_period_end ?? item.current_period_end),
     canceled_at: iso(sub.canceled_at),
+    // Set when the subscription actually ended (a cancel at period end ends later than canceled_at).
+    ended_at: iso(sub.ended_at),
     stripe_price_id: item.price?.id || null,
   };
 }
@@ -70,6 +72,8 @@ async function run() {
   const subsById = new Map();
   for await (const sub of stripe.subscriptions.list({ status: 'all', limit: 100 })) {
     subsById.set(sub.id, sub);
+    // The plan's limits follow the subscription into its workspace.
+    await applyPlanLimits(stripe, sub).catch((e) => console.warn(`[subscription-sync] limits of ${sub.id} not applied:`, e?.message || e));
   }
   return await apply(rows, subsById);
 }

@@ -6,6 +6,7 @@
  * settings, talks to the providers and writes local records.
  */
 
+import { cached, forget } from '../remote-cache.js';
 import { loopar } from 'loopar';
 import { createMigadu } from './migadu.js';
 import { createCloudflare, applyPlan } from './cloudflare.js';
@@ -253,7 +254,7 @@ export async function sendMailboxInvitation(doc, recoveryEmail) {
     password_method: 'invitation',
     password_recovery_email: email,
   }));
-  await loopar.db.updateRow(MAILBOX, doc.name, { recovery_email: email, invited_at: now() });
+  forgetMail(doc.domain);
   return email;
 }
 
@@ -271,7 +272,44 @@ export async function setMailboxPassword(doc, password) {
 
 const one = async (entity, fields, filter) => (await loopar.db.getAll(entity, fields, filter))[0] || null;
 
-/** Local values of a Migadu mailbox. */
+/** "user@domain.com" → { localPart, domain } (null when it isn't an address). */
+export function splitAddress(address) {
+  const [localPart, domain, ...rest] = String(address || '').trim().toLowerCase().split('@');
+  return localPart && domain && !rest.length ? { localPart, domain } : null;
+}
+
+/** Mailboxes of one domain, from Migadu (shared for a few seconds: see remote-cache.js). */
+export async function remoteMailboxes(domain, api = null) {
+  return await cached(`mail:${domain}:mailboxes`, async () => {
+    api = api || await migadu();
+    return (await remote(() => api.listMailboxes(domain))).map((m) => mailboxValues(domain, m));
+  });
+}
+
+/** Aliases of one domain, from Migadu (shared for a few seconds). */
+export async function remoteAliases(domain, api = null) {
+  return await cached(`mail:${domain}:aliases`, async () => {
+    api = api || await migadu();
+    return (await remote(() => api.listAliases(domain))).map((a) => aliasValues(domain, a));
+  });
+}
+
+/** A mailbox or alias of `domain` changed through Loopar: the next read asks Migadu again. */
+export const forgetMail = (domain) => forget(`mail:${domain}:`);
+
+/**
+ * Mailboxes or aliases of every Mail Domain registered here, live from
+ * Migadu (one call per domain, in parallel), sorted by address.
+ */
+export async function remoteRecords(list) {
+  const domains = await loopar.db.getAll(DOMAIN, ['name']);
+  if (!domains.length) return [];
+  const api = await migadu();
+  const rows = (await Promise.all(domains.map((d) => list(d.name, api)))).flat();
+  return rows.sort((a, b) => a.domain.localeCompare(b.domain) || a.name.localeCompare(b.name));
+}
+
+/** Form values of a Migadu mailbox. */
 export function mailboxValues(domain, m) {
   const lp = String(m.local_part).toLowerCase();
   return {
@@ -279,9 +317,10 @@ export function mailboxValues(domain, m) {
     address: `${lp}@${domain}`,
     domain,
     local_part: lp,
-    // Only when Migadu returns them: an import never blanks local values.
-    ...(m.name ? { display_name: m.name } : {}),
-    ...(m.password_recovery_email ? { recovery_email: m.password_recovery_email } : {}),
+    display_name: m.name || '',
+    recovery_email: m.password_recovery_email || '',
+    // Inactive: can't send, receive or sign in — the mailbox and its mail are kept.
+    status: [m.may_send, m.may_receive, m.may_access_imap].every((v) => v === false) ? 'Inactive' : 'Active',
     may_send: m.may_send === false ? 0 : 1,
     may_receive: m.may_receive === false ? 0 : 1,
     may_access_imap: m.may_access_imap === false ? 0 : 1,
@@ -289,7 +328,7 @@ export function mailboxValues(domain, m) {
   };
 }
 
-/** Local values of a Migadu alias. */
+/** Form values of a Migadu alias. */
 export function aliasValues(domain, a) {
   const lp = String(a.local_part).toLowerCase();
   const dest = Array.isArray(a.destinations) ? a.destinations : String(a.destinations || '').split(',');
@@ -316,45 +355,7 @@ async function upsertLocal(entity, values) {
   return 'created';
 }
 
-/**
- * Mailboxes and aliases of one domain, Migadu → local. Local-only rows are
- * reported, not deleted. A record that cannot be saved is reported in
- * `failed` and the rest still import.
- */
-export async function importDomainContent(domain) {
-  const api = await migadu();
-  const counts = { mailboxes: { created: 0, updated: 0 }, aliases: { created: 0, updated: 0 }, localOnly: [], failed: [] };
-
-  const pull = async (entity, values, bucket) => {
-    try {
-      bucket[await upsertLocal(entity, values)]++;
-    } catch (e) {
-      counts.failed.push(`${values.name}: ${e?.message || e}`);
-    }
-  };
-
-  const mailboxes = await remote(() => api.listMailboxes(domain));
-  const remoteMb = new Set();
-  for (const m of mailboxes) {
-    const values = mailboxValues(domain, m);
-    remoteMb.add(values.name);
-    await pull(MAILBOX, values, counts.mailboxes);
-  }
-
-  const aliases = await remote(() => api.listAliases(domain));
-  const remoteAl = new Set();
-  for (const a of aliases) {
-    const values = aliasValues(domain, a);
-    remoteAl.add(values.name);
-    await pull(ALIAS, values, counts.aliases);
-  }
-
-  for (const r of await loopar.db.getAll(MAILBOX, ['name'], { domain })) if (!remoteMb.has(r.name)) counts.localOnly.push(r.name);
-  for (const r of await loopar.db.getAll(ALIAS, ['name'], { domain })) if (!remoteAl.has(r.name)) counts.localOnly.push(r.name);
-  return counts;
-}
-
-/** Every Migadu domain (and its mailboxes/aliases) → local records. */
+/** Every Migadu domain → a Mail Domain here (mailboxes and aliases are read live, never copied). */
 export async function importAll() {
   const api = await migadu();
   const domains = await remote(() => api.listDomains());
@@ -374,9 +375,7 @@ export async function importAll() {
       summary.push(`${name}: failed — ${e?.message || e}`);
       continue;
     }
-    const content = await importDomainContent(name);
-    const failed = content.failed.length ? ` — failed: ${content.failed.join('; ')}` : '';
-    summary.push(`${name}: domain ${result}, ${content.mailboxes.created + content.mailboxes.updated} mailbox(es), ${content.aliases.created + content.aliases.updated} alias(es)${failed}`);
+    summary.push(`${name}: ${result}`);
   }
   return summary;
 }

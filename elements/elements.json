@@ -1,0 +1,8 @@
+[
+  {
+    "element": "stripe_plans",
+    "group": "data",
+    "icon": "LayoutGrid",
+    "content": { "title": "line", "description": "text", "button_label": "line" }
+  }
+]

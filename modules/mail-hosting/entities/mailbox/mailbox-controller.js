@@ -10,6 +10,13 @@ export default class MailboxController extends BaseController {
     super(props);
   }
 
+  /** "Delete" deactivates: the mailbox and its mail stay in Migadu. */
+  async actionDelete() {
+    const doc = await targetDoc(this);
+    await doc.delete();
+    return this.redirect('list', { notify: `${doc.name} was deactivated. Its mail is kept; turn its permissions back on to reactivate it.` });
+  }
+
   /** Asks Migadu to email the owner a link to choose a new password. */
   async actionSendInvitation() {
     const doc = await targetDoc(this);

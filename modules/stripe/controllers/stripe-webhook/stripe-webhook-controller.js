@@ -3,7 +3,7 @@
 import { BaseController, loopar, tenant } from 'loopar';
 import Stripe from 'stripe';
 import { provisionTenant } from '../../../subscriptions/provisioning.js';
-import { grantPortalAccessQuietly } from '../../../subscriptions/account-service.js';
+import { grantPortalAccessQuietly, stripeClient, applyPlanLimits } from '../../../subscriptions/account-service.js';
 import { stripeIdOf, setStripeId } from '../../../subscriptions/stripe-customer.js';
 
 /**
@@ -157,6 +157,14 @@ export default class StripeWebhookController extends BaseController {
       console.warn(`[stripe-webhook] subscription.updated: could not hydrate ${tenantName}`);
       await this._markProcessed(event.id);
       return;
+    }
+
+    // A plan change (upgrade/downgrade) moves the workspace's limits with it.
+    try {
+      const stripe = await stripeClient({ required: false });
+      if (stripe) await applyPlanLimits(stripe, sub);
+    } catch (err) {
+      console.warn(`[stripe-webhook] limits of ${tenantName} not applied:`, err.message);
     }
 
     if (['past_due', 'unpaid'].includes(sub.status)) {

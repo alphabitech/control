@@ -7,7 +7,7 @@ import {
   ownedDomain, ownedMailbox, ownedAlias, signInWithActivation, setOwnPassword,
 } from '../../account-service.js';
 import {
-  DOMAIN, MAILBOX, ALIAS, input, truthy, settings as mailSettings,
+  DOMAIN, MAILBOX, ALIAS, input, truthy, settings as mailSettings, remoteMailboxes, remoteAliases,
   sendMailboxInvitation, setMailboxPassword,
 } from '../../../mail-hosting/mail-service.js';
 
@@ -64,37 +64,41 @@ export default class CloudAccountController extends PageController {
     }
 
     const settings = await mailSettings();
-    const sites = (await customerTenantNames(customer, plans))
-      .map((name) => siteOf(name, subscriptionOfTenant(plans, name)))
+    const sites = (await Promise.all((await customerTenantNames(customer, plans))
+      .map((name) => siteOf(name, subscriptionOfTenant(plans, name)))))
       .filter(Boolean);
 
     const domains = [];
     for (const d of await loopar.db.getAll(DOMAIN, ['name', 'status', 'tenant_name'], { customer: customer.name })) {
-      const mailboxes = (await loopar.db.getAll(
-        MAILBOX,
-        ['name', 'local_part', 'display_name', 'recovery_email', 'may_send', 'may_receive', 'may_access_imap', 'invited_at'],
-        { domain: d.name },
-      )).map((m) => ({
+      // Live from Migadu. If it doesn't answer, the domain says so instead of showing stale data.
+      let remoteBoxes = [], remoteAl = [], mailError = null;
+      try {
+        [remoteBoxes, remoteAl] = await Promise.all([remoteMailboxes(d.name), remoteAliases(d.name)]);
+      } catch (e) {
+        console.warn(`[cloud-account] mail of ${d.name} not loaded:`, e?.message || e);
+        mailError = 'We could not load the mailboxes of this domain right now. Please try again in a moment.';
+      }
+
+      const mailboxes = remoteBoxes.map((m) => ({
         address: m.name,
         local_part: m.local_part,
         display_name: m.display_name || '',
         recovery_email: m.recovery_email || '',
         active: mailboxIsActive(m),
-        invited_at: m.invited_at || null,
       })).sort(byName);
 
-      const aliases = (await loopar.db.getAll(ALIAS, ['name', 'local_part', 'destinations'], { domain: d.name }))
-        .map((a) => ({
-          address: a.name,
-          local_part: a.local_part,
-          destinations: String(a.destinations || '').split(/[\s,;]+/).filter(Boolean),
-        })).sort(byName);
+      const aliases = remoteAl.map((a) => ({
+        address: a.name,
+        local_part: a.local_part,
+        destinations: String(a.destinations || '').split(/[\s,;]+/).filter(Boolean),
+      })).sort(byName);
 
       domains.push({
         name: d.name,
         status: d.status,
         tenant_name: d.tenant_name || null,
-        ...(await domainAllowance(d, plans, settings)),
+        ...(await domainAllowance(d, plans, settings, remoteBoxes)),
+        mail_error: mailError,
         mailboxes,
         aliases,
       });

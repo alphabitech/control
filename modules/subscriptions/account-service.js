@@ -13,14 +13,15 @@
  *   Email     → Mail Domains owned by the customer (`Mail Domain.customer`).
  */
 
-import { loopar, tenant, requirePortalIdentity, Op } from 'loopar';
+import { loopar, tenant, requirePortalIdentity, Op, tenantUserUsage, getTenantInstance } from 'loopar';
 import { ensureCustomerContact, grantPortalAccess as grantContactAccess, customerContacts } from '../../../loopar/modules/crm/portal-access.js';
 import Stripe from 'stripe';
+import { keyMode } from '../stripe/stripe-keys.js';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import { controlPlaneBaseUrlFromReq } from './portal-link-issuer.js';
 import { completeLogin } from '../../../loopar/modules/auth/controllers/auth/mfa.js';
-import { settings as mailSettings, DOMAIN, MAILBOX, ALIAS } from '../mail-hosting/mail-service.js';
+import { settings as mailSettings, DOMAIN, MAILBOX, ALIAS, splitAddress, remoteMailboxes } from '../mail-hosting/mail-service.js';
 import { stripeIdOf, setStripeId } from './stripe-customer.js';
 
 export const PAGE = 'Cloud Account';
@@ -63,6 +64,29 @@ export async function stripeClient({ required = true } = {}) {
     return null;
   }
   return new Stripe(account.secret_key);
+}
+
+/** The key decides: the Secret Key's mode; the stored label only when the key doesn't tell. */
+const activeModeOf = (account) => keyMode(account?.secret_key) || (account?.mode === 'live' ? 'live' : 'test');
+
+/** The mode billing runs in ('live' | 'test'): the mode of the Secret Key. */
+export async function stripeMode() {
+  const account = await loopar.getDocument('Stripe Account', null, null, { ifNotFound: null });
+  return activeModeOf(account);
+}
+
+/**
+ * Stripe client of a given mode, for preparing Plans. The active mode uses the
+ * account's key; 'test' on a live account uses its Test secret key. null when
+ * that mode has no key here (a test account never reaches live).
+ */
+export async function stripeClientFor(mode) {
+  const account = await loopar.getDocument('Stripe Account', null, null, { ifNotFound: null });
+  const active = activeModeOf(account);
+  const key = mode === active ? account?.secret_key : (mode === 'test' ? account?.test_secret_key : null);
+  // Never hand out a client of another mode than the one asked for.
+  if (!key || (keyMode(key) && keyMode(key) !== mode)) return null;
+  return new Stripe(key);
 }
 
 const productCache = new Map();
@@ -112,7 +136,35 @@ async function shapeSubscription(stripe, sub) {
     ended_at: iso(sub.ended_at || sub.canceled_at),
     tenant_name: sub.metadata?.tenant_name || null,
     mailbox_limit: Number.isFinite(limit) && limit >= 0 ? limit : null,
+    user_limit: planLimits(prod).users ?? null,
   };
+}
+
+/** Workspace limits a plan (Stripe product) grants: { users } — absent = unlimited. */
+export function planLimits(prod) {
+  const users = parseInt(prod?.metadata?.users, 10);
+  return Number.isFinite(users) && users > 0 ? { users } : {};
+}
+
+/**
+ * Writes the plan's limits of a running Stripe subscription into its
+ * workspace (sites/<tenant>/config.json), where the framework enforces them.
+ * Only when they changed; a workspace that doesn't exist is skipped.
+ */
+export async function applyPlanLimits(stripe, sub) {
+  const name = sub?.metadata?.tenant_name;
+  if (!name || !LIVE_STATUSES.has(sub.status)) return false;
+  const current = tenant.readTenant(name);
+  if (!current) return false;
+  const price = sub.items?.data?.[0]?.price || {};
+  const prod = await product(stripe, typeof price.product === 'string' ? price.product : price.product?.id);
+  if (!prod) return false;
+  const next = { ...(current.limits || {}) };
+  delete next.users;
+  Object.assign(next, planLimits(prod));
+  if (JSON.stringify(next) === JSON.stringify(current.limits || {})) return false;
+  await tenant.saveTenant({ name, limits: next });
+  return true;
 }
 
 /**
@@ -181,9 +233,11 @@ export async function customerTenantNames(customer, subs) {
   return [...names];
 }
 
-export function siteOf(name, sub) {
+export async function siteOf(name, sub) {
   const t = tenant.readTenant(name);
   if (!t) return null;
+  // { limit, used }: `used` only when that workspace is loaded in this core.
+  const usage = await tenantUserUsage(name, getTenantInstance);
   const url = tenant.tenantUrl(name);
   return {
     name,
@@ -193,6 +247,7 @@ export function siteOf(name, sub) {
     other_domains: Object.keys(t.sites || {}),
     status: t.status, // 'active' | 'suspended'
     plan: sub ? { plan: sub.plan, status: sub.status } : null,
+    users: usage,
   };
 }
 
@@ -202,12 +257,15 @@ export function siteOf(name, sub) {
 
 export const mailboxIsActive = (m) => [m.may_send, m.may_receive, m.may_access_imap].some((v) => [1, '1', true].includes(v));
 
-/** Mailbox limit + whether new mailboxes may be added, for one domain. */
-export async function domainAllowance(domainRow, subs, settings = null) {
+/**
+ * Mailbox limit + whether new mailboxes may be added, for one domain.
+ * `mailboxes`: the domain's mailboxes when the caller already read them
+ * (otherwise they are read from Migadu).
+ */
+export async function domainAllowance(domainRow, subs, settings = null, mailboxes = null) {
   settings = settings || await mailSettings();
   const sub = subscriptionOfTenant(subs, domainRow.tenant_name);
-  const used = (await loopar.db.getAll(MAILBOX, ['may_send', 'may_receive', 'may_access_imap'], { domain: domainRow.name }))
-    .filter(mailboxIsActive).length;
+  const used = (mailboxes || await remoteMailboxes(domainRow.name)).filter(mailboxIsActive).length;
 
   let limit = sub?.mailbox_limit ?? null;
   if (limit == null) limit = Number(settings.default_mailbox_limit) || 0; // 0 = no limit
@@ -233,20 +291,23 @@ export async function ownedDomain(customer, domain) {
 
 /** A Mailbox of one of the customer's domains (404 otherwise). */
 export async function ownedMailbox(customer, address) {
-  const name = String(address || '').trim().toLowerCase();
-  const row = name ? await loopar.db.getRow(MAILBOX, name, ['name', 'domain']) : null;
-  if (!row) fail('Mailbox not found.', 404);
-  await ownedDomain(customer, row.domain);
-  return await loopar.getDocument(MAILBOX, row.name);
+  // Ownership comes from the address's domain (ours), before Migadu is asked.
+  const at = splitAddress(address);
+  if (!at) fail('Mailbox not found.', 404);
+  await ownedDomain(customer, at.domain);
+  const doc = await loopar.getDocument(MAILBOX, `${at.localPart}@${at.domain}`, null, { ifNotFound: null });
+  if (!doc) fail('Mailbox not found.', 404);
+  return doc;
 }
 
 /** A Mail Alias of one of the customer's domains (404 otherwise). */
 export async function ownedAlias(customer, address) {
-  const name = String(address || '').trim().toLowerCase();
-  const row = name ? await loopar.db.getRow(ALIAS, name, ['name', 'domain']) : null;
-  if (!row) fail('Alias not found.', 404);
-  await ownedDomain(customer, row.domain);
-  return await loopar.getDocument(ALIAS, row.name);
+  const at = splitAddress(address);
+  if (!at) fail('Alias not found.', 404);
+  await ownedDomain(customer, at.domain);
+  const doc = await loopar.getDocument(ALIAS, `${at.localPart}@${at.domain}`, null, { ifNotFound: null });
+  if (!doc) fail('Alias not found.', 404);
+  return doc;
 }
 
 /* ------------------------------------------------------------------ */
