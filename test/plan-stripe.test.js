@@ -25,7 +25,7 @@ test("only products with a category are plans (setup-fee products are not)", () 
 test("round trip: an unchanged form changes nothing in the price", () => {
   const plan = planFromProduct(product);
   assert.equal(priceChanged(priceParams(plan), product.default_price), false);
-  assert.deepEqual(productParams(plan).metadata, { category: "cloud", order: "2", mailboxes: "5", users: "", features: "Website | Email" });
+  assert.deepEqual(productParams(plan).metadata, { category: "cloud", order: "2", mailboxes: "5", users: "", custom_domain: "", features: "Website | Email" });
 });
 
 test("price: amount, currency or interval changes need a new Stripe price", () => {
@@ -67,4 +67,17 @@ test("the key decides the mode", async () => {
   assert.equal(keyMode("pk_test_abc"), "test");
   assert.equal(keyMode(""), null);
   assert.equal(keyMode("••••••••"), null);
+});
+
+test("custom domain: included unless the plan turns it off; only \"0\" is stored", async () => {
+  const { planFromProduct, productParams } = await import("../modules/subscriptions/plan-stripe.js");
+  const base = { plan_name: "X", category: "cloud" };
+
+  assert.equal(productParams({ ...base, custom_domain: 0 }).metadata.custom_domain, "0");
+  assert.equal(productParams({ ...base, custom_domain: 1 }).metadata.custom_domain, "");
+  assert.equal(productParams(base).metadata.custom_domain, "");
+
+  const product = (metadata) => ({ id: "p", name: "X", active: true, metadata });
+  assert.equal(planFromProduct(product({ category: "cloud" })).custom_domain, 1);
+  assert.equal(planFromProduct(product({ category: "cloud", custom_domain: "0" })).custom_domain, 0);
 });

@@ -386,6 +386,8 @@ export default function StripePlans(props) {
           {selectedCard && selectedPrice && (() => {
             const sCategory = cardCategory(selectedCard);
             const needsWorkspace = sCategory === "cloud";
+            // Plans include a custom domain unless they turn it off (metadata custom_domain "0").
+            const ownDomain = String(selectedCard.product_metadata?.custom_domain ?? "") !== "0";
             const needsAmount = !!selectedPrice.custom_unit_amount;
             const hasMultiple = selectedCard.prices.length > 1;
             const cu = selectedPrice.custom_unit_amount || {};
@@ -470,10 +472,12 @@ export default function StripePlans(props) {
                       disabled={submitting}
                     />
                     <p className="text-xs text-muted-foreground">
-                      {__("Your workspace will be at")}{" "}
+                      {__(ownDomain ? "Your workspace starts at" : "Your workspace will be at")}{" "}
                       <code className="text-foreground">
                         {(workspaceName || "your-name") + domain_suffix}
                       </code>
+                      {/* A domain only works once its DNS points here, so every workspace starts on the subdomain. */}
+                      {ownDomain && <>{". "}{__("You can connect your own domain once it is ready.")}</>}
                     </p>
                   </div>
                 )}

@@ -108,7 +108,7 @@ export async function runProvisioningRetrySweep() {
 
 // Domain suffix for new cloud workspaces. Defaults to `.localhost` for dev;
 // production sets this in the control tenant's .env once wildcard DNS is wired.
-function getDomainSuffix() {
+export function getDomainSuffix() {
   const raw = String(process.env.CLOUD_DOMAIN_SUFFIX || '.localhost').trim();
   return raw.startsWith('.') ? raw : '.' + raw;
 }

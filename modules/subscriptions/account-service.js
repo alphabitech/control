@@ -22,6 +22,7 @@ import { controlPlaneBaseUrlFromReq } from './portal-link-issuer.js';
 import { completeLogin } from '../../../loopar/modules/auth/controllers/auth/mfa.js';
 import { settings as mailSettings, DOMAIN, MAILBOX, ALIAS, splitAddress, remoteMailboxes } from '../mail-hosting/mail-service.js';
 import { stripeIdOf, setStripeId } from './stripe-customer.js';
+import { getDomainSuffix } from './provisioning.js';
 
 export const PAGE = 'Cloud Account';
 export const PAGE_PATH = `/portal/${encodeURIComponent(PAGE)}/view`;
@@ -116,10 +117,17 @@ async function shapeSubscription(stripe, sub) {
   };
 }
 
-/** Workspace limits a plan (Stripe product) grants: { users } — absent = unlimited. */
+/**
+ * Workspace limits a plan (Stripe product) grants — absent = unlimited:
+ * { users } and, for a plan without custom domain, { domain_suffix } (the
+ * workspace keeps to the cloud's own subdomains).
+ */
 export function planLimits(prod) {
+  const limits = {};
   const users = parseInt(prod?.metadata?.users, 10);
-  return Number.isFinite(users) && users > 0 ? { users } : {};
+  if (Number.isFinite(users) && users > 0) limits.users = users;
+  if (String(prod?.metadata?.custom_domain ?? '').trim() === '0') limits.domain_suffix = getDomainSuffix();
+  return limits;
 }
 
 /**
@@ -137,6 +145,7 @@ export async function applyPlanLimits(stripe, sub) {
   if (!prod) return false;
   const next = { ...(current.limits || {}) };
   delete next.users;
+  delete next.domain_suffix;
   Object.assign(next, planLimits(prod));
   if (JSON.stringify(next) === JSON.stringify(current.limits || {})) return false;
   await tenant.saveTenant({ name, limits: next });

@@ -52,6 +52,8 @@ export function planFromProduct(product, price = null, { mode = 'live', activeMo
     order: text(meta.order),
     mailboxes: text(meta.mailboxes),
     users: text(meta.users),
+    // Absent = included: only "0" takes the custom domain away.
+    custom_domain: text(meta.custom_domain) === '0' ? 0 : 1,
     features: featuresToLines(meta.features),
     active: product.active ? 1 : 0,
     price: price?.unit_amount != null ? (price.unit_amount / 100).toFixed(2) : '',
@@ -60,6 +62,9 @@ export function planFromProduct(product, price = null, { mode = 'live', activeMo
     stripe_price_id: price?.id || '',
   };
 }
+
+/** A plan includes a custom domain unless its switch is explicitly off. */
+export const customDomainIncluded = (plan) => !['0', 'false'].includes(text(plan?.custom_domain).toLowerCase()) && plan?.custom_domain !== 0 && plan?.custom_domain !== false;
 
 /** Product fields Stripe stores for a plan. Throws on values Stripe would reject. */
 export function productParams(plan) {
@@ -72,7 +77,11 @@ export function productParams(plan) {
     description: text(plan.description),
     active: truthy(plan.active),
     // An empty value removes the key in Stripe.
-    metadata: { category, order: text(plan.order), mailboxes: text(plan.mailboxes), users: text(plan.users), features },
+    metadata: {
+      category, order: text(plan.order), mailboxes: text(plan.mailboxes), users: text(plan.users),
+      custom_domain: customDomainIncluded(plan) ? '' : '0',
+      features,
+    },
   };
 }
 

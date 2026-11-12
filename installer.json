@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.55"
+    "version": "0.0.57"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — websites, business email and business tools",
-      "version": "0.0.55",
+      "version": "0.0.57",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
