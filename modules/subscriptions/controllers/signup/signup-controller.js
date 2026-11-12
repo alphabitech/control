@@ -4,7 +4,7 @@ import { BaseController, loopar, tenant } from 'loopar';
 import Stripe from 'stripe';
 import fs from 'fs';
 import path from 'pathe';
-import { cleanupCanceledTenants } from '../../lifecycle.js';
+import { cleanupCanceledTenants, cloudSettings } from '../../lifecycle.js';
 import { runProvisioningRetrySweep } from '../../provisioning.js';
 import {
   issuePortalLink,
@@ -298,7 +298,7 @@ export default class SignupController extends BaseController {
     const email = String(data.email || '').trim().toLowerCase();
     const workspaceName = String(data.workspace_name || '').trim().toLowerCase();
     const rawAmount = data.amount;
-    const templateName = String(data.template || '').trim();
+    let templateName = String(data.template || '').trim();
 
     if (!priceId || !email) {
       return { status: 400, success: false, message: 'price_id and email are required' };
@@ -368,11 +368,18 @@ export default class SignupController extends BaseController {
       if (fs.existsSync(path.join(process.cwd(), 'sites', workspaceName))) {
         return { status: 400, success: false, message: 'That workspace name is already taken' };
       }
+      const isPublished = async (name) =>
+        (await loopar.db.getAll('Site Template', { fields: ['name'], filter: { name, published: 1 } })).length > 0;
       if (templateName) {
-        const published = await loopar.db.getAll('Site Template', { fields: ['name'], filter: { name: templateName, published: 1 } });
-        if (!published.length) {
+        if (!await isPublished(templateName)) {
           return { status: 400, success: false, message: 'Unknown website template' };
         }
+      } else {
+        // No template picked: the workspace starts with the default site of
+        // Cloud Settings (when one is set and still published), so its
+        // address shows a website from the first minute.
+        const fallback = (await cloudSettings()).defaultTemplate;
+        if (fallback && await isPublished(fallback)) templateName = fallback;
       }
     }
 

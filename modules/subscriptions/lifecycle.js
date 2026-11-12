@@ -1,6 +1,6 @@
 'use strict';
 
-import { loopar } from 'loopar';
+import { loopar, tenant } from 'loopar';
 import { syncSubscriptions } from './subscription-sync.js';
 import fs from 'fs';
 import path from 'pathe';
@@ -38,6 +38,9 @@ async function removeTenantFiles(tenantName) {
   const doc = await loopar.getDocument('Tenant Manager', tenantName, null, { ifNotFound: null });
   if (doc?.name) {
     try {
+      // A tenant is destroyed only once it is off. A canceled workspace was
+      // stopped when it was canceled; this covers one turned back on by hand.
+      if (tenant.readTenant(tenantName)?.status === 'active') await doc.stop();
       await doc.destroy();
       return !fs.existsSync(sitePath);
     } catch (err) {
@@ -65,6 +68,8 @@ export async function cloudSettings() {
     graceDays: Number.isInteger(days) && days >= 1 ? days : DEFAULT_GRACE_DAYS,
     // Only an explicit "off" stops deletions.
     autoDelete: ![0, '0', false, 'false'].includes(doc?.auto_delete_canceled),
+    // Site Template a workspace gets when none was picked at checkout ('' = none).
+    defaultTemplate: String(doc?.default_template || '').trim(),
   };
 }
 

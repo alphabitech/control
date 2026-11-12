@@ -1,7 +1,7 @@
 {
   "App": {
     "name": "control",
-    "version": "0.0.57"
+    "version": "0.0.58"
   },
   "documents": {
     "Entity:Module": {
@@ -14,7 +14,7 @@
       "has_website": 1,
       "name": "control",
       "description": "Loopar Cloud — websites, business email and business tools",
-      "version": "0.0.57",
+      "version": "0.0.58",
       "autor": "alfredrz2012@gmail.com",
       "icon": "Cloud",
       "footer_height": "",
@@ -337,6 +337,15 @@
       "last_updated": "2026-11-04",
       "summary": "",
       "description": "This Privacy Policy explains how AlphaBit Technology Inc. (\"we\", \"us\") collects and uses personal information when you visit this website or use Loopar Cloud.\n\n## Information we collect\n\n- **Account and billing details:** your name, email address and the plan you use. Payments are processed by Stripe; we do not see or store your full card number.\n- **Messages you send us:** what you write in the contact form, including your name and email.\n- **Service data:** the content, records and email you keep in your workspace. We process it only to provide the service.\n- **Technical data:** basic information such as pages visited, browser type and IP address, used to run, secure and improve the website.\n\n## How we use it\n\nTo provide and support the service, process payments, send messages about your account (such as invoices, password links and security notices), answer your requests, prevent abuse and meet legal obligations. We do not sell your personal information.\n\n## Who we share it with\n\nOnly with providers that help us run the service, such as payment processing (Stripe), email delivery, DNS and hosting, and only as needed for that purpose; or when the law requires it.\n\n## Email you host with us\n\nMail in the mailboxes you host with us belongs to you and the people who use them. Each mailbox owner sets their own password, and we do not read mailbox content except when needed to deliver the service or when the law requires it.\n\n## Retention\n\nWe keep account and billing records while you are a customer and as long as needed for legal and accounting purposes. Workspace data is kept while your plan is active and for a limited time after it ends, so it can be recovered.\n\n## Your choices\n\nYou can update your account details from your account, and ask us to access, correct or delete your personal information through the contact page.\n\n## Changes\n\nWe may update this policy. The current version is always on this page with its effective date.\n\n## Contact\n\nQuestions about privacy can be sent through the contact page of this website."
+    },
+    "Site Template:blank-site": {
+      "name": "blank-site",
+      "title": "Blank",
+      "sector": "General",
+      "published": 1,
+      "order": 0,
+      "summary": "Three simple pages to start from: write your own text, add your photos and grow the site at your pace.",
+      "features": "Home, About and Contact pages\nContact form with spam protection\nEvery text, image and section editable without code"
     },
     "Site Template:construction-site": {
       "name": "construction-site",
