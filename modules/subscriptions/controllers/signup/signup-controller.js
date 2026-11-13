@@ -957,7 +957,7 @@ export default class SignupController extends BaseController {
             ? stripeSub.current_period_end
             : nowSec + SEVEN_DAYS) * 1000
         );
-        const { token } = await issuePortalLink(subscription.name, linkExpiresAt);
+        const { token } = await issuePortalLink(subName, linkExpiresAt);
         actionUrl = buildPortalLinkUrl(token, controlPlaneBaseUrlFromReq(this.req));
       } catch (err) {
         // Non-fatal — the operator can re-issue via the Resend modal later.
@@ -1137,7 +1137,7 @@ export default class SignupController extends BaseController {
     );
     let actionUrl;
     try {
-      const { token } = await issuePortalLink(subscription.name, linkExpiresAt);
+      const { token } = await issuePortalLink(subName, linkExpiresAt);
       actionUrl = buildPortalLinkUrl(token, controlPlaneBaseUrlFromReq(this.req));
     } catch (err) {
       console.error('[signup/resendActivation] issuePortalLink failed:', err.message);
