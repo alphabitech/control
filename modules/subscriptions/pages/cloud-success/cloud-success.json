@@ -2,5 +2,6 @@
   "name": "Cloud Success",
   "module": "subscriptions",
   "doc_structure": "[]",
-  "__ENTITY__": "Page Builder"
+  "__ENTITY__": "Page Builder",
+  "seo": "{\"title\":\"Welcome — Loopar Cloud\",\"noindex\":1}"
 }

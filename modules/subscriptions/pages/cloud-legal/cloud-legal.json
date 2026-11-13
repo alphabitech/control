@@ -4,5 +4,6 @@
   "enable_history": 0,
   "enable_comments": 0,
   "doc_structure": "[{\"node\":\"cl_001\",\"element\":\"collection_view\",\"data\":{\"label\":\"Legal notice\",\"options\":\"Legal Notice\"}}]",
-  "__ENTITY__": "Page Builder"
+  "__ENTITY__": "Page Builder",
+  "seo": "{\"title\":\"Terms and privacy — Loopar Cloud\",\"description\":\"Legal notices for Loopar Cloud: the terms and policies that apply to accounts, websites and email.\"}"
 }
