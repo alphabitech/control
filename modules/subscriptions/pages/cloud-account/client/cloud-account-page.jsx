@@ -411,6 +411,35 @@ function Email({ mail, reload }) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+/** Signed in, but with a user that belongs to no customer. */
+function NotACustomer({ operator, user }) {
+  return (
+    <div className="mx-auto max-w-xl rounded-xl border border-border bg-card p-6 text-center space-y-3">
+      <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
+      <h1 className="text-lg font-semibold">This page is for Loopar Cloud customers</h1>
+      <p className="text-sm text-muted-foreground">
+        You are signed in as <strong>{user}</strong>, which is not linked to a customer account.
+      </p>
+      {operator ? (
+        <>
+          <p className="text-sm text-muted-foreground">
+            To see a customer's account, open their subscription and use "Get portal link" in a
+            private window: the link signs in as that customer.
+          </p>
+          <Button asChild variant="secondary"><a href="/desk/Subscription/list">Go to subscriptions</a></Button>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">
+            If you bought a plan with a different email, sign in with that one. Otherwise contact us and we will link your account.
+          </p>
+          <Button asChild variant="secondary"><a href="/contact">Contact us</a></Button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Account() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -447,6 +476,7 @@ function Account() {
     );
   }
   if (!data) return <p className="p-6 text-center text-sm text-muted-foreground">Loading your account…</p>;
+  if (data.not_customer) return <NotACustomer operator={data.operator} user={data.user} />;
 
   return (
     <div className="space-y-5 py-2">

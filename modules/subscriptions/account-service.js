@@ -13,7 +13,7 @@
  *   Email     → Mail Domains owned by the customer (`Mail Domain.customer`).
  */
 
-import { loopar, tenant, requirePortalIdentity, Op, tenantUserUsage, getTenantInstance } from 'loopar';
+import { loopar, tenant, requirePortalIdentity, portalIdentity, Op, tenantUserUsage, getTenantInstance } from 'loopar';
 import { ensureCustomerContact, grantPortalAccess as grantContactAccess, customerContacts } from '../../../loopar/modules/crm/portal-access.js';
 import { stripeClient as billingClient, stripeMode, stripeClientFor } from '../../../loopar/modules/stripe/stripe-accounts.js';
 import jwt from 'jsonwebtoken';
@@ -194,6 +194,21 @@ export function subscriptionOfTenant(subs, tenantName) {
  * The Customer of the current user, or an error the portal shows. A contact
  * of several customers gets the one with billing (a Stripe customer) first.
  */
+/**
+ * `{ not_customer, operator, user }` when the signed-in user is linked to no
+ * customer; null for a customer (or nobody signed in — the caller's own
+ * checks answer that). `operator`: a desk user, who manages customers
+ * instead of being one.
+ */
+export async function nonCustomerVisitor() {
+  const user = loopar.auth.user();
+  if (!user) return null;
+  const { customers } = await portalIdentity(user);
+  if (customers.length) return null;
+  const row = await loopar.db.getRow('User', user, ['name', 'user_type']);
+  return { not_customer: true, operator: String(row?.user_type || 'System') !== 'Web', user };
+}
+
 export async function currentCustomer() {
   const { customers } = await requirePortalIdentity({ message: 'Your user is not linked to a customer account yet. Please contact support.' });
   const rows = await loopar.db.getAll('Customer', ['name', 'email'], { name: { [Op.in]: [...customers] } });

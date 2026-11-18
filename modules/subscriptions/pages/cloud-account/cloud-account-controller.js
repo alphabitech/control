@@ -3,7 +3,7 @@
 import { PageController, loopar } from 'loopar';
 import {
   fail, pageUrl, stripeClient, stripeCustomerId, customerSubscriptions, subscriptionOfTenant,
-  currentCustomer, customerTenantNames, siteOf, mailboxIsActive, domainAllowance,
+  currentCustomer, nonCustomerVisitor, customerTenantNames, siteOf, mailboxIsActive, domainAllowance,
   ownedDomain, ownedMailbox, ownedAlias, signInWithActivation, setOwnPassword,
 } from '../../account-service.js';
 import {
@@ -46,6 +46,11 @@ export default class CloudAccountController extends PageController {
   /* ---------------------------------------------------------------- */
 
   async actionSummary() {
+    // Someone signed in who is not a customer (usually the operator looking at
+    // the page with a desk user): say so instead of failing the page.
+    const visitor = await nonCustomerVisitor();
+    if (visitor) return visitor;
+
     const customer = await currentCustomer();
 
     let plans = [];
